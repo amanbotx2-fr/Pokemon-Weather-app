@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title> Pokémon Weather App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="search-bar">
+      <input type="text" id="city-input" placeholder="Enter city..." />
+      <button id="search-btn">Search</button>
+    </div>
+
+    <div class="weather-box">
+      <div class="location">--</div>
+      <div class="date">--</div>
+      <div class="main-temp">
+        <h1>--°C</h1>
+        <p class="status">--</p>
+        <p class="details">💨 -- kph &nbsp;&nbsp; 💧 --%</p>
+      </div>
+
+      <div class="pokemon-image">
+        <img id="pokemon-img" src="" alt="Pokémon will appear based on weather" />
+      </div>
+
+      <div class="forecast"></div>
+    </div>
+
+    <div class="pokemon-guide">
+      <h2>Pokémon Type Guide</h2>
+      <div class="types-grid">
+        <div class="type">
+          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/charmander.gif" alt="Charmander" />
+          <p>🟠 Sunny / Clear</p>
+        </div>
+        <div class="type">
+          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/pidgey.gif" alt="Pidgey" />
+          <p>☁️ Cloudy</p>
+        </div>
+        <div class="type">
+          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/squirtle.gif" alt="Squirtle" />
+          <p>🌧️ Rain / Drizzle</p>
+        </div>
+        <div class="type">
+          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/pikachu.gif" alt="Pikachu" />
+          <p>⚡ Thunderstorm</p>
+        </div>
+        <div class="type">
+          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/snorunt.gif" alt="Snorunt" />
+          <p>❄️ Snow / Ice</p>
+        </div>
+        <div class="type">
+          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/gastly.gif" alt="Gastly" />
+          <p>🌫️ Mist / Fog</p>
+        </div>
+        <div class="type">
+          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/fearow.gif" alt="Fearow" />
+          <p>💨 Windy</p>
+        </div>
+        <div class="type">
+          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/sandshrew.gif" alt="Sandshrew" />
+          <p>🌪️ Dust / Haze / Smoke</p>
+        </div>
+        <div class="type">
+          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/meowth.gif" alt="Meowth" />
+          <p>✨ Other</p>
+        </div>
+      </div>
+    </div>
+  </div>
+<footer class="footer">
+  <p>Made with ❤️ by Aman Kumar</p>
+  <p>
+    <a href="https://github.com/amanbotx2-fr" target="_blank">GitHub</a> •
+    <a href="https://www.linkedin.com/in/amankr06" target="_blank">LinkedIn</a> •
+    <a href="https://x.com/amankumar_2006" target="_blank">X</a> •
+    <a href="https://instagram.com/amxn.ae06" target="_blank">Instagram</a>
+  </p>
+</footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
