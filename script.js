@@ -1,208 +1,1025 @@
 const apiKey = "53327aac67b8417bbb1120954252506";
 
-document.getElementById("search-btn").addEventListener("click", () => {
-  const city = document.getElementById("city-input").value.trim();
-  if (city !== "") {
-    getWeather(city);
+const API_BASE = "https://api.weatherapi.com/v1";
+const REQUEST_TIMEOUT_MS = 9000;
+const STORAGE_KEYS = {
+  settings: "pokemonWeather.settings.v2",
+  favorites: "pokemonWeather.favorites.v2",
+  recent: "pokemonWeather.recent.v2"
+};
+
+const POKEMON_RULES = [
+  {
+    id: "charmander",
+    name: "Charmander",
+    weather: "Sunny / Clear",
+    type: ["Fire"],
+    keywords: ["sun", "clear"],
+    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/charmander.gif",
+    height: "0.6 m",
+    weight: "8.5 kg",
+    ability: "Blaze",
+    theme: "sunny",
+    relation: "Charmander thrives in warm sunlight and feels strongest under clear skies."
+  },
+  {
+    id: "pidgey",
+    name: "Pidgey",
+    weather: "Cloudy",
+    type: ["Normal", "Flying"],
+    keywords: ["cloud"],
+    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/pidgey.gif",
+    height: "0.3 m",
+    weight: "1.8 kg",
+    ability: "Keen Eye",
+    theme: "cloudy",
+    relation: "Pidgey enjoys breezy skies and often glides through partly cloudy weather."
+  },
+  {
+    id: "squirtle",
+    name: "Squirtle",
+    weather: "Rain / Drizzle",
+    type: ["Water"],
+    keywords: ["rain", "drizzle"],
+    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/squirtle.gif",
+    height: "0.5 m",
+    weight: "9.0 kg",
+    ability: "Torrent",
+    theme: "rain",
+    relation: "Squirtle is happiest when showers roll in and the air turns cool."
+  },
+  {
+    id: "pikachu",
+    name: "Pikachu",
+    weather: "Thunderstorm",
+    type: ["Electric"],
+    keywords: ["thunder", "storm"],
+    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/pikachu.gif",
+    height: "0.4 m",
+    weight: "6.0 kg",
+    ability: "Static",
+    theme: "thunder",
+    relation: "Pikachu channels stormy skies into a bright electric burst of energy."
+  },
+  {
+    id: "snorunt",
+    name: "Snorunt",
+    weather: "Snow / Ice",
+    type: ["Ice"],
+    keywords: ["snow", "ice"],
+    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/snorunt.gif",
+    height: "0.7 m",
+    weight: "16.8 kg",
+    ability: "Inner Focus",
+    theme: "snow",
+    relation: "Snorunt feels right at home when cold air and icy weather arrive."
+  },
+  {
+    id: "gastly",
+    name: "Gastly",
+    weather: "Mist / Fog",
+    type: ["Ghost", "Poison"],
+    keywords: ["mist", "fog"],
+    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/gastly.gif",
+    height: "1.3 m",
+    weight: "0.1 kg",
+    ability: "Levitate",
+    theme: "mist",
+    relation: "Gastly drifts through mist and fog when visibility fades."
+  },
+  {
+    id: "fearow",
+    name: "Fearow",
+    weather: "Windy",
+    type: ["Normal", "Flying"],
+    keywords: ["wind"],
+    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/fearow.gif",
+    height: "1.2 m",
+    weight: "38.0 kg",
+    ability: "Keen Eye",
+    theme: "cloudy",
+    relation: "Fearow cuts through gusty weather and rides strong winds with ease."
+  },
+  {
+    id: "sandshrew",
+    name: "Sandshrew",
+    weather: "Dust / Haze / Smoke",
+    type: ["Ground"],
+    keywords: ["haze", "smoke", "dust"],
+    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/sandshrew.gif",
+    height: "0.6 m",
+    weight: "12.0 kg",
+    ability: "Sand Veil",
+    theme: "sunny",
+    relation: "Sandshrew stays steady when dust, haze, or dry air moves through."
+  },
+  {
+    id: "meowth",
+    name: "Meowth",
+    weather: "Other",
+    type: ["Normal"],
+    keywords: [],
+    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/meowth.gif",
+    height: "0.4 m",
+    weight: "4.2 kg",
+    ability: "Pickup",
+    theme: "idle",
+    relation: "Meowth is flexible and ready for unusual weather patterns."
   }
-});
+];
 
-document.getElementById("city-input").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    document.getElementById("search-btn").click();
-  }
-});
+const dom = {};
+const state = {
+  suggestions: [],
+  highlightedSuggestion: -1,
+  suggestionController: null,
+  weatherController: null,
+  loading: false,
+  inflightKey: "",
+  lastSuccessfulKey: "",
+  lastFailedTarget: null,
+  activeLocation: null,
+  activeWeather: null,
+  displayedTemp: null,
+  settings: readStorage(STORAGE_KEYS.settings, {
+    unit: "c",
+    animations: "on",
+    theme: "dynamic"
+  }),
+  favorites: readStorage(STORAGE_KEYS.favorites, []),
+  recent: readStorage(STORAGE_KEYS.recent, [])
+};
 
-function getWeather(city) {
-  const fullCity = `${city},India`; 
-  const apiUrl = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${fullCity}`;
+document.addEventListener("DOMContentLoaded", init);
 
-  fetch(apiUrl)
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error("City not found");
-      }
-      return res.json();
-    })
-    .then((data) => {
-      const temp = data.current.temp_c;
-      const wind = data.current.wind_kph;
-      const humidity = data.current.humidity;
-      const condition = data.current.condition.text;
-      const icon = data.current.condition.icon;
-      const date = data.location.localtime;
-
-      updateWeatherUI(city, temp, wind, humidity, condition, icon, date, data);
-    })
-    .catch((error) => {
-      console.error("Error fetching weather:", error);
-      alert("City not found. Please try again.");
-    });
+function init() {
+  cacheDom();
+  renderPokemonGuide();
+  hydrateSettingsControls();
+  applySettings();
+  bindEvents();
+  closeSuggestions();
+  renderFavorites();
+  renderRecent();
+  showFeedback("empty", "No city selected yet.", "Search for a city or use your current location to start.");
 }
 
-function updateWeatherUI(cityName, temperature, windSpeed, humidity, condition, iconUrl, date, data) {
-  const current = data?.current || {};
-  const location = data?.location || {};
-  const visibility = current.vis_km ?? "--";
-  const uvIndex = current.uv ?? "--";
-  const feelsLike = current.feelslike_c ?? "--";
+function cacheDom() {
+  Object.assign(dom, {
+    body: document.body,
+    form: document.getElementById("search-form"),
+    input: document.getElementById("city-input"),
+    searchBtn: document.getElementById("search-btn"),
+    locationBtn: document.getElementById("current-location-btn"),
+    suggestionsPanel: document.getElementById("suggestions-panel"),
+    suggestionsStatus: document.getElementById("suggestions-status"),
+    suggestionsList: document.getElementById("suggestions-list"),
+    feedback: document.getElementById("feedback-card"),
+    feedbackTitle: document.getElementById("feedback-title"),
+    feedbackMessage: document.getElementById("feedback-message"),
+    retryBtn: document.getElementById("retry-btn"),
+    saveCityBtn: document.getElementById("save-city-btn"),
+    settingsBtn: document.getElementById("settings-btn"),
+    settingsModal: document.getElementById("settings-modal"),
+    closeSettingsBtn: document.getElementById("close-settings-btn"),
+    favoritesBtn: document.getElementById("favorites-btn"),
+    favoritesMenu: document.getElementById("favorites-menu"),
+    favoritesList: document.getElementById("favorites-list"),
+    trainerBtn: document.getElementById("trainer-btn"),
+    trainerMenu: document.getElementById("trainer-menu"),
+    trainerLocationBtn: document.getElementById("trainer-location-btn"),
+    recentList: document.getElementById("recent-list"),
+    trainerFavoritesList: document.getElementById("trainer-favorites-list"),
+    guideGrid: document.getElementById("pokemon-guide-grid"),
+    weatherCard: document.querySelector(".weather-overview"),
+    forecastPanel: document.querySelector(".forecast-panel"),
+    forecastList: document.getElementById("forecast-list"),
+    forecastSummary: document.querySelector(".forecast-summary")
+  });
+}
 
-  document.querySelector(".location").textContent = cityName;
-  document.querySelector(".region").textContent = location.region ? `${location.region}, ${location.country}` : "India";
-  document.querySelector(".date").textContent = date;
-  document.querySelector(".main-temp h1").textContent = `${temperature}°C`;
-  document.querySelector(".status").textContent = condition;
-  document.querySelector(".feels-like").textContent = `Feels like ${feelsLike}°C`;
-  document.querySelector(".details").textContent = `Wind ${windSpeed} kph · Humidity ${humidity}%`;
-  document.querySelector(".metric-wind").textContent = `${windSpeed} kph`;
-  document.querySelector(".metric-humidity").textContent = `${humidity}%`;
-  document.querySelector(".metric-visibility").textContent = `${visibility} km`;
-  document.querySelector(".metric-uv").textContent = uvIndex;
-  document.querySelector(".detail-wind").textContent = `${windSpeed} kph`;
-  document.querySelector(".detail-humidity").textContent = `${humidity}%`;
-  document.querySelector(".detail-visibility").textContent = `${visibility} km`;
-  document.querySelector(".detail-uv").textContent = uvIndex;
-  document.querySelector(".detail-condition").textContent = condition;
+function bindEvents() {
+  dom.form.addEventListener("submit", handleSearchSubmit);
+  dom.input.addEventListener("input", debounce(handleAutocompleteInput, 260));
+  dom.input.addEventListener("keydown", handleSearchKeydown);
+  dom.input.addEventListener("focus", () => {
+    if (state.suggestions.length) openSuggestions();
+  });
 
-  
-  const pokemonImage = document.getElementById("pokemon-img");
-  let weatherType = condition.toLowerCase();
-  let pokemonSrc = "";
-  let pokemonAlt = "";
-  let pokemonName = "";
-  let pokemonTypes = [];
-  let pokemonHeight = "";
-  let pokemonWeight = "";
-  let pokemonAbility = "";
-  let weatherTheme = "other";
+  dom.locationBtn.addEventListener("click", requestCurrentLocation);
+  dom.trainerLocationBtn.addEventListener("click", () => {
+    closeMenus();
+    requestCurrentLocation();
+  });
+  dom.retryBtn.addEventListener("click", () => {
+    if (state.lastFailedTarget) searchWeather(state.lastFailedTarget, { force: true });
+  });
+  dom.saveCityBtn.addEventListener("click", toggleActiveFavorite);
 
-  if (weatherType.includes("sun") || weatherType.includes("clear")) {
-    pokemonSrc = "https://img.pokemondb.net/sprites/black-white/anim/normal/charmander.gif";
-    pokemonAlt = "Charmander - Fire Type";
-    pokemonName = "Charmander";
-    pokemonTypes = ["Fire"];
-    pokemonHeight = "0.6 m";
-    pokemonWeight = "8.5 kg";
-    pokemonAbility = "Blaze";
-    weatherTheme = "sunny";
-  } else if (weatherType.includes("cloud")) {
-    pokemonSrc = "https://img.pokemondb.net/sprites/black-white/anim/normal/pidgey.gif";
-    pokemonAlt = "Pidgey - Normal Type";
-    pokemonName = "Pidgey";
-    pokemonTypes = ["Normal", "Flying"];
-    pokemonHeight = "0.3 m";
-    pokemonWeight = "1.8 kg";
-    pokemonAbility = "Keen Eye";
-    weatherTheme = "cloudy";
-  } else if (weatherType.includes("rain") || weatherType.includes("drizzle")) {
-    pokemonSrc = "https://img.pokemondb.net/sprites/black-white/anim/normal/squirtle.gif";
-    pokemonAlt = "Squirtle - Water Type";
-    pokemonName = "Squirtle";
-    pokemonTypes = ["Water"];
-    pokemonHeight = "0.5 m";
-    pokemonWeight = "9.0 kg";
-    pokemonAbility = "Torrent";
-    weatherTheme = "rain";
-  } else if (weatherType.includes("thunder") || weatherType.includes("storm")) {
-    pokemonSrc = "https://img.pokemondb.net/sprites/black-white/anim/normal/pikachu.gif";
-    pokemonAlt = "Pikachu - Electric Type";
-    pokemonName = "Pikachu";
-    pokemonTypes = ["Electric"];
-    pokemonHeight = "0.4 m";
-    pokemonWeight = "6.0 kg";
-    pokemonAbility = "Static";
-    weatherTheme = "thunder";
-  } else if (weatherType.includes("snow") || weatherType.includes("ice")) {
-    pokemonSrc = "https://img.pokemondb.net/sprites/black-white/anim/normal/snorunt.gif";
-    pokemonAlt = "Snorunt - Ice Type";
-    pokemonName = "Snorunt";
-    pokemonTypes = ["Ice"];
-    pokemonHeight = "0.7 m";
-    pokemonWeight = "16.8 kg";
-    pokemonAbility = "Inner Focus";
-    weatherTheme = "snow";
-  } else if (weatherType.includes("mist") || weatherType.includes("fog")) {
-    pokemonSrc = "https://img.pokemondb.net/sprites/black-white/anim/normal/gastly.gif";
-    pokemonAlt = "Gastly - Ghost Type";
-    pokemonName = "Gastly";
-    pokemonTypes = ["Ghost", "Poison"];
-    pokemonHeight = "1.3 m";
-    pokemonWeight = "0.1 kg";
-    pokemonAbility = "Levitate";
-    weatherTheme = "mist";
-  } else if (weatherType.includes("wind")) {
-    pokemonSrc = "https://img.pokemondb.net/sprites/black-white/anim/normal/fearow.gif";
-    pokemonAlt = "Fearow - Flying Type";
-    pokemonName = "Fearow";
-    pokemonTypes = ["Normal", "Flying"];
-    pokemonHeight = "1.2 m";
-    pokemonWeight = "38.0 kg";
-    pokemonAbility = "Keen Eye";
-    weatherTheme = "cloudy";
-  } else if (weatherType.includes("haze") || weatherType.includes("smoke") || weatherType.includes("dust")) {
-    pokemonSrc = "https://img.pokemondb.net/sprites/black-white/anim/normal/sandshrew.gif";
-    pokemonAlt = "Sandshrew - Ground Type";
-    pokemonName = "Sandshrew";
-    pokemonTypes = ["Ground"];
-    pokemonHeight = "0.6 m";
-    pokemonWeight = "12.0 kg";
-    pokemonAbility = "Sand Veil";
-    weatherTheme = "sunny";
-  } else {
-    pokemonSrc = "https://img.pokemondb.net/sprites/black-white/anim/normal/meowth.gif";
-    pokemonAlt = "Meowth - Normal Type";
-    pokemonName = "Meowth";
-    pokemonTypes = ["Normal"];
-    pokemonHeight = "0.4 m";
-    pokemonWeight = "4.2 kg";
-    pokemonAbility = "Pickup";
+  document.querySelectorAll("[data-search-city]").forEach((button) => {
+    button.addEventListener("click", () => searchWeather(button.dataset.searchCity, { force: true }));
+  });
+
+  dom.settingsBtn.addEventListener("click", openSettings);
+  dom.closeSettingsBtn.addEventListener("click", closeSettings);
+  dom.settingsModal.addEventListener("click", (event) => {
+    if (event.target === dom.settingsModal) closeSettings();
+  });
+  document.querySelectorAll(".setting-group input").forEach((input) => {
+    input.addEventListener("change", handleSettingChange);
+  });
+
+  dom.favoritesBtn.addEventListener("click", () => toggleMenu("favorites"));
+  dom.trainerBtn.addEventListener("click", () => toggleMenu("trainer"));
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".menu-wrap")) closeMenus();
+    if (!event.target.closest(".search-bar")) closeSuggestions();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeSuggestions();
+      closeMenus();
+      closeSettings();
+    }
+  });
+
+  document.addEventListener("pointerdown", addButtonRipple);
+}
+
+async function handleAutocompleteInput() {
+  const query = dom.input.value.trim();
+  state.highlightedSuggestion = -1;
+
+  if (query.length < 2) {
+    state.suggestions = [];
+    renderSuggestions([]);
+    dom.suggestionsStatus.textContent = "Type at least 2 letters to search cities.";
+    closeSuggestions();
+    return;
   }
 
-  document.body.dataset.weather = weatherTheme;
-  pokemonImage.src = pokemonSrc;
-  pokemonImage.alt = pokemonAlt;
-  document.querySelector(".partner-name").textContent = pokemonName;
-  document.querySelector(".partner-description").textContent =
-    `${pokemonName} is matched with ${condition.toLowerCase()} conditions in ${cityName}.`;
-  document.querySelector(".partner-height").textContent = pokemonHeight;
-  document.querySelector(".partner-weight").textContent = pokemonWeight;
-  document.querySelector(".partner-ability").textContent = pokemonAbility;
-  document.querySelector(".partner-badges").innerHTML = pokemonTypes
-    .map((type, index) => `<span class="badge ${index === 0 ? "badge-neutral" : "badge-accent"}">${type}</span>`)
-    .join("");
-  document.querySelector(".trainer-copy").textContent =
-    `${pokemonName} is a good companion for ${condition.toLowerCase()} weather.`;
-  document.querySelector(".air-label").textContent = humidity > 75 ? "Humid" : "Comfortable";
-  document.querySelector(".air-score-value").textContent = Math.max(1, Math.min(99, Math.round(100 - humidity / 2)));
+  if (state.suggestionController) state.suggestionController.abort();
+  state.suggestionController = new AbortController();
+  dom.suggestionsStatus.textContent = "Searching cities...";
+  openSuggestions();
 
-  
-  const forecastDiv = document.querySelector(".forecast");
-  forecastDiv.innerHTML = `
-    <div class="day active">
-      <p>Today</p>
-      <h3>${temperature}°</h3>
-      <img src="https:${iconUrl}" alt="${condition}">
-      <small>${condition}</small>
-    </div>
-    <div class="day">
-      <p>Day 2</p>
-      <h3>--</h3>
-      <small>Coming</small>
-    </div>
-    <div class="day">
-      <p>Day 3</p>
-      <h3>--</h3>
-      <small>Soon</small>
-    </div>
-    <div class="day">
-      <p>Day 4</p>
-      <h3>--</h3>
-      <small>Update</small>
-    </div>
-    <div class="day">
-      <p>Day 5</p>
-      <h3>--</h3>
-      <small>Upgrade</small>
-    </div>
-  `;
+  try {
+    const results = await fetchWeatherApi("/search.json", { q: query }, state.suggestionController.signal);
+    state.suggestions = Array.isArray(results) ? results.slice(0, 8) : [];
+    renderSuggestions(state.suggestions);
+  } catch (error) {
+    if (error.name === "AbortError") return;
+    state.suggestions = [];
+    renderSuggestions([]);
+    dom.suggestionsStatus.textContent = "City search is unavailable. You can still press Enter.";
+  }
+}
+
+function renderSuggestions(suggestions) {
+  dom.suggestionsList.replaceChildren();
+  dom.input.setAttribute("aria-expanded", suggestions.length ? "true" : "false");
+
+  if (!suggestions.length) {
+    dom.suggestionsStatus.textContent = "No matching cities found.";
+    return;
+  }
+
+  dom.suggestionsStatus.textContent = `${suggestions.length} location suggestions`;
+  suggestions.forEach((place, index) => {
+    const item = document.createElement("li");
+    item.id = `suggestion-${index}`;
+    item.role = "option";
+    item.dataset.index = String(index);
+    item.setAttribute("aria-selected", "false");
+    item.innerHTML = `
+      <button type="button">
+        <strong>${escapeHtml(place.name)}</strong>
+        <span>${escapeHtml(formatRegion(place))}</span>
+      </button>
+    `;
+    item.addEventListener("mousedown", (event) => event.preventDefault());
+    item.addEventListener("click", () => selectSuggestion(index));
+    dom.suggestionsList.appendChild(item);
+  });
+}
+
+function handleSearchKeydown(event) {
+  const hasSuggestions = state.suggestions.length > 0 && !dom.suggestionsPanel.hidden;
+
+  if (event.key === "ArrowDown" && hasSuggestions) {
+    event.preventDefault();
+    highlightSuggestion(Math.min(state.highlightedSuggestion + 1, state.suggestions.length - 1));
+  } else if (event.key === "ArrowUp" && hasSuggestions) {
+    event.preventDefault();
+    highlightSuggestion(Math.max(state.highlightedSuggestion - 1, 0));
+  } else if (event.key === "Enter" && hasSuggestions && state.highlightedSuggestion >= 0) {
+    event.preventDefault();
+    selectSuggestion(state.highlightedSuggestion);
+  } else if (event.key === "Escape") {
+    closeSuggestions();
+  }
+}
+
+function highlightSuggestion(index) {
+  state.highlightedSuggestion = index;
+  [...dom.suggestionsList.children].forEach((item, itemIndex) => {
+    const selected = itemIndex === index;
+    item.classList.toggle("is-highlighted", selected);
+    item.setAttribute("aria-selected", selected ? "true" : "false");
+  });
+  dom.input.setAttribute("aria-activedescendant", index >= 0 ? `suggestion-${index}` : "");
+}
+
+function selectSuggestion(index) {
+  const place = state.suggestions[index];
+  if (!place) return;
+  dom.input.value = `${place.name}, ${place.region || place.country}`;
+  closeSuggestions();
+  searchWeather(normalizeLocationTarget(place), { force: true });
+}
+
+function handleSearchSubmit(event) {
+  event.preventDefault();
+  const query = dom.input.value.trim();
+
+  if (!query) {
+    showFeedback("empty", "No city selected yet.", "Search for a city, choose a suggestion, or use your current location.");
+    dom.input.focus();
+    return;
+  }
+
+  closeSuggestions();
+  searchWeather(query, { force: false });
+}
+
+async function searchWeather(target, options = {}) {
+  clearSuggestions();
+  const requestKey = getTargetKey(target);
+
+  if (!options.force && state.loading && requestKey === state.inflightKey) return;
+  if (!options.force && requestKey === state.lastSuccessfulKey) return;
+
+  abortWeatherRequest();
+  state.weatherController = new AbortController();
+  state.inflightKey = requestKey;
+  state.loading = true;
+  state.lastFailedTarget = target;
+  setLoading(true);
+  hideFeedback();
+
+  try {
+    const data = await fetchWeatherApi("/forecast.json", {
+      q: getWeatherQuery(target),
+      days: "5",
+      aqi: "yes",
+      alerts: "no"
+    }, state.weatherController.signal);
+
+    state.loading = false;
+    state.lastSuccessfulKey = requestKey;
+    state.lastFailedTarget = null;
+    state.activeWeather = data;
+    state.activeLocation = locationFromWeather(data.location, target);
+    renderWeather(data);
+    saveRecent(state.activeLocation);
+    renderRecent();
+    renderFavorites();
+    setLoading(false);
+  } catch (error) {
+    if (error.name === "AbortError") return;
+    state.loading = false;
+    setLoading(false);
+    state.lastSuccessfulKey = "";
+    handleWeatherError(error, target);
+  }
+}
+
+async function fetchWeatherApi(path, params, externalSignal) {
+  const url = new URL(`${API_BASE}${path}`);
+  url.search = new URLSearchParams({ key: apiKey, ...params }).toString();
+
+  const controller = new AbortController();
+  let timedOut = false;
+  const timeoutId = window.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, REQUEST_TIMEOUT_MS);
+
+  const abortFromExternal = () => controller.abort();
+  if (externalSignal) {
+    if (externalSignal.aborted) controller.abort();
+    externalSignal.addEventListener("abort", abortFromExternal, { once: true });
+  }
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    const json = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const error = new Error(json?.error?.message || "Weather request failed");
+      error.status = response.status;
+      error.code = json?.error?.code;
+      throw error;
+    }
+
+    return json;
+  } catch (error) {
+    if (timedOut) {
+      const timeoutError = new Error("Request timed out");
+      timeoutError.code = "timeout";
+      throw timeoutError;
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+    if (externalSignal) externalSignal.removeEventListener("abort", abortFromExternal);
+  }
+}
+
+function abortWeatherRequest() {
+  if (state.weatherController) {
+    state.weatherController.abort();
+    state.weatherController = null;
+  }
+}
+
+function handleWeatherError(error, target) {
+  const queryLabel = typeof target === "string" ? target : target?.label || "that location";
+
+  if (error.code === "timeout") {
+    showFeedback("network", "Connection lost.", "The weather request took too long. Check your connection and try again.", { retry: true });
+    return;
+  }
+
+  if (error.status === 400 || error.code === 1006) {
+    showFeedback("not-found", "City not found.", `We couldn't find ${queryLabel}. Try searching Jaipur, Delhi, or Mumbai.`, { retry: false });
+    return;
+  }
+
+  showFeedback("network", "Network error.", "Weather data is temporarily unavailable. Try again in a moment.", { retry: true });
+}
+
+function renderWeather(data) {
+  const current = data.current || {};
+  const location = data.location || {};
+  const today = data.forecast?.forecastday?.[0] || {};
+  const astro = today.astro || {};
+  const condition = current.condition?.text || "Unknown";
+  const pokemon = getPokemonForCondition(condition);
+  const unit = state.settings.unit;
+
+  applyWeatherTheme(pokemon.theme);
+  dom.body.classList.add("has-weather");
+
+  setText(".location", location.name || state.activeLocation?.name || "Current location");
+  setText(".region", [location.region, location.country].filter(Boolean).join(", ") || "Weather station");
+  setText(".date", formatLocalTime(location.localtime));
+  setText(".status", condition);
+  setText(".feels-like", `Feels like ${formatTemp(current.feelslike_c, current.feelslike_f)}`);
+  setText(".details", `Wind ${formatWind(current)} · Humidity ${current.humidity ?? "--"}%`);
+  animateTemperature(getTempValue(current.temp_c, current.temp_f), unit);
+
+  setText(".metric-wind", formatWind(current));
+  setText(".metric-humidity", `${current.humidity ?? "--"}%`);
+  setText(".metric-visibility", formatVisibility(current));
+  setText(".metric-uv", formatUv(current.uv));
+
+  setText(".detail-feels", formatTemp(current.feelslike_c, current.feelslike_f));
+  setText(".detail-humidity", `${current.humidity ?? "--"}%`);
+  setText(".detail-wind", formatWind(current));
+  setText(".detail-visibility", formatVisibility(current));
+  setText(".detail-pressure", current.pressure_mb ? `${Math.round(current.pressure_mb)} hPa` : "--");
+  setText(".detail-cloud", current.cloud !== undefined ? `${current.cloud}%` : "--");
+  setText(".detail-uv", formatUv(current.uv));
+  setText(".detail-dew", formatTemp(current.dewpoint_c, current.dewpoint_f));
+  setText(".detail-sunrise", astro.sunrise || "--");
+  setText(".detail-sunset", astro.sunset || "--");
+  setText(".detail-air", formatAirQuality(current.air_quality));
+
+  renderAirQuality(current.air_quality);
+  renderPokemonPartner(pokemon, condition, location.name);
+  renderForecast(data.forecast?.forecastday || []);
+  updateFavoriteButton();
+}
+
+function renderPokemonPartner(pokemon, condition, cityName) {
+  const image = document.getElementById("pokemon-img");
+  image.src = pokemon.sprite;
+  image.alt = `${pokemon.name}, matched with ${condition}`;
+  image.loading = "eager";
+
+  setText(".partner-name", pokemon.name);
+  setText(".partner-description", `${pokemon.name} is matched with ${condition.toLowerCase()} in ${cityName || "this city"}.`);
+  setText(".partner-weather", pokemon.relation);
+  setText(".partner-height", pokemon.height);
+  setText(".partner-weight", pokemon.weight);
+  setText(".partner-ability", pokemon.ability);
+
+  const badges = document.querySelector(".partner-badges");
+  badges.replaceChildren(...pokemon.type.map((type, index) => {
+    const badge = document.createElement("span");
+    badge.className = `badge ${index === 0 ? "badge-neutral" : "badge-accent"}`;
+    badge.textContent = type;
+    return badge;
+  }));
+
+  setText(".trainer-copy", pokemon.relation);
+}
+
+function renderForecast(forecastDays) {
+  dom.forecastList.replaceChildren();
+
+  if (!forecastDays.length) {
+    dom.forecastSummary.textContent = "Forecast data is unavailable for this city.";
+    document.querySelector(".forecast-panel h2").textContent = "Forecast";
+    dom.forecastList.style.setProperty("--forecast-count", "1");
+    return;
+  }
+
+  const days = forecastDays.slice(0, 5);
+  document.querySelector(".forecast-panel h2").textContent = `Next ${days.length} ${days.length === 1 ? "Day" : "Days"}`;
+  dom.forecastSummary.textContent = `${days.length} day forecast from WeatherAPI`;
+  dom.forecastList.style.setProperty("--forecast-count", String(days.length));
+  days.forEach((forecastDay, index) => {
+    const day = forecastDay.day || {};
+    const condition = day.condition?.text || "Unknown";
+    const pokemon = getPokemonForCondition(condition);
+    const card = document.createElement("article");
+    card.className = `day ${index === 0 ? "active" : ""}`;
+    card.innerHTML = `
+      <p>${escapeHtml(index === 0 ? "Today" : formatDay(forecastDay.date))}</p>
+      <img src="https:${escapeHtml(day.condition?.icon || "")}" alt="${escapeHtml(condition)}" loading="lazy">
+      <h3>${escapeHtml(formatTempRange(day))}</h3>
+      <small>${escapeHtml(condition)}</small>
+      <img class="forecast-pokemon" src="${escapeHtml(pokemon.sprite)}" alt="${escapeHtml(pokemon.name)}" loading="lazy">
+    `;
+    dom.forecastList.appendChild(card);
+  });
+}
+
+function renderPokemonGuide() {
+  dom.guideGrid.replaceChildren(...POKEMON_RULES.map((pokemon) => {
+    const card = document.createElement("article");
+    card.className = "type";
+    card.innerHTML = `
+      <img src="${escapeHtml(pokemon.sprite)}" alt="${escapeHtml(pokemon.name)}" loading="lazy" />
+      <div>
+        <h3>${escapeHtml(pokemon.name)}</h3>
+        <p>${escapeHtml(pokemon.weather)}</p>
+        <span>${escapeHtml(pokemon.type.join(" / "))}</span>
+      </div>
+    `;
+    return card;
+  }));
+}
+
+function renderAirQuality(airQuality) {
+  const epa = airQuality?.["us-epa-index"];
+  const pm25 = airQuality?.pm2_5;
+
+  if (!epa && !pm25) {
+    setText(".air-label", "Unavailable");
+    setText(".air-score-value", "--");
+    setText(".air-description", "Air quality was not returned for this location.");
+    return;
+  }
+
+  setText(".air-label", aqiLabel(epa));
+  setText(".air-score-value", pm25 ? Math.round(pm25) : epa);
+  setText(".air-description", epa ? `US EPA index ${epa}. PM2.5 ${formatNumber(pm25)}.` : `PM2.5 ${formatNumber(pm25)}.`);
+}
+
+function requestCurrentLocation() {
+  if (!navigator.geolocation) {
+    showFeedback("network", "Location unavailable.", "Your browser does not support current location search.");
+    return;
+  }
+
+  setLoading(true, "Finding location...");
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+      searchWeather({ lat: latitude, lon: longitude, label: "Current location" }, { force: true });
+    },
+    (error) => {
+      setLoading(false);
+      const denied = error.code === error.PERMISSION_DENIED;
+      showFeedback(
+        "network",
+        denied ? "Location permission denied." : "Location unavailable.",
+        denied ? "Enable location access or search for a city manually." : "We could not detect your current location. Search for a city instead."
+      );
+    },
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+  );
+}
+
+function toggleActiveFavorite() {
+  if (!state.activeLocation) return;
+  const exists = favoriteIndex(state.activeLocation) >= 0;
+
+  if (exists) {
+    state.favorites.splice(favoriteIndex(state.activeLocation), 1);
+  } else {
+    state.favorites.unshift(state.activeLocation);
+  }
+
+  state.favorites = uniqueLocations(state.favorites).slice(0, 20);
+  writeStorage(STORAGE_KEYS.favorites, state.favorites);
+  renderFavorites();
+  updateFavoriteButton();
+}
+
+function renderFavorites() {
+  const empty = `<p class="empty-menu">No favorites yet. Save a city after searching.</p>`;
+  renderLocationList(dom.favoritesList, state.favorites, { removable: true, empty });
+  renderLocationList(dom.trainerFavoritesList, state.favorites, { removable: false, empty });
+}
+
+function renderRecent() {
+  renderLocationList(dom.recentList, state.recent, {
+    removable: false,
+    empty: `<p class="empty-menu">No recent searches yet.</p>`
+  });
+}
+
+function renderLocationList(container, locations, options) {
+  container.replaceChildren();
+
+  if (!locations.length) {
+    container.innerHTML = options.empty;
+    return;
+  }
+
+  locations.forEach((location) => {
+    const row = document.createElement("div");
+    row.className = "menu-location-row";
+
+    const searchButton = document.createElement("button");
+    searchButton.type = "button";
+    searchButton.className = "menu-location";
+    searchButton.innerHTML = `<strong>${escapeHtml(location.name)}</strong><span>${escapeHtml(formatRegion(location))}</span>`;
+    searchButton.addEventListener("click", () => {
+      closeMenus();
+      dom.input.value = location.label;
+      searchWeather(location, { force: true });
+    });
+    row.appendChild(searchButton);
+
+    if (options.removable) {
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "remove-location";
+      removeButton.setAttribute("aria-label", `Remove ${location.name} from favorites`);
+      removeButton.textContent = "×";
+      removeButton.addEventListener("click", () => {
+        state.favorites = state.favorites.filter((item) => item.key !== location.key);
+        writeStorage(STORAGE_KEYS.favorites, state.favorites);
+        renderFavorites();
+        updateFavoriteButton();
+      });
+      row.appendChild(removeButton);
+    }
+
+    container.appendChild(row);
+  });
+}
+
+function saveRecent(location) {
+  state.recent = uniqueLocations([location, ...state.recent]).slice(0, 10);
+  writeStorage(STORAGE_KEYS.recent, state.recent);
+}
+
+function updateFavoriteButton() {
+  if (!state.activeLocation) {
+    dom.saveCityBtn.disabled = true;
+    dom.saveCityBtn.classList.remove("is-saved");
+    dom.saveCityBtn.querySelector("span").textContent = "Save City";
+    return;
+  }
+
+  const saved = favoriteIndex(state.activeLocation) >= 0;
+  dom.saveCityBtn.disabled = false;
+  dom.saveCityBtn.classList.toggle("is-saved", saved);
+  dom.saveCityBtn.querySelector("span").textContent = saved ? "Saved" : "Save City";
+}
+
+function favoriteIndex(location) {
+  return state.favorites.findIndex((item) => item.key === location.key);
+}
+
+function uniqueLocations(locations) {
+  const seen = new Set();
+  return locations.filter((location) => {
+    if (!location?.key || seen.has(location.key)) return false;
+    seen.add(location.key);
+    return true;
+  });
+}
+
+function handleSettingChange(event) {
+  const { name, value } = event.target;
+  state.settings[name] = value;
+  if (name === "unit") state.displayedTemp = null;
+  writeStorage(STORAGE_KEYS.settings, state.settings);
+  applySettings();
+  if (state.activeWeather) renderWeather(state.activeWeather);
+}
+
+function hydrateSettingsControls() {
+  document.querySelectorAll(".setting-group input").forEach((input) => {
+    input.checked = state.settings[input.name] === input.value;
+  });
+}
+
+function applySettings() {
+  dom.body.dataset.theme = state.settings.theme;
+  dom.body.classList.toggle("animations-off", state.settings.animations === "off");
+}
+
+function openSettings() {
+  hydrateSettingsControls();
+  dom.settingsModal.hidden = false;
+  dom.closeSettingsBtn.focus();
+}
+
+function closeSettings() {
+  if (!dom.settingsModal.hidden) {
+    dom.settingsModal.hidden = true;
+    dom.settingsBtn.focus();
+  }
+}
+
+function toggleMenu(menuName) {
+  const isFavorites = menuName === "favorites";
+  const button = isFavorites ? dom.favoritesBtn : dom.trainerBtn;
+  const menu = isFavorites ? dom.favoritesMenu : dom.trainerMenu;
+  const otherButton = isFavorites ? dom.trainerBtn : dom.favoritesBtn;
+  const otherMenu = isFavorites ? dom.trainerMenu : dom.favoritesMenu;
+  const willOpen = !menu.classList.contains("is-open");
+
+  otherMenu.classList.remove("is-open");
+  otherButton.setAttribute("aria-expanded", "false");
+  menu.classList.toggle("is-open", willOpen);
+  button.setAttribute("aria-expanded", willOpen ? "true" : "false");
+}
+
+function closeMenus() {
+  dom.favoritesMenu.classList.remove("is-open");
+  dom.trainerMenu.classList.remove("is-open");
+  dom.favoritesBtn.setAttribute("aria-expanded", "false");
+  dom.trainerBtn.setAttribute("aria-expanded", "false");
+}
+
+function openSuggestions() {
+  dom.suggestionsPanel.classList.add("is-open");
+  dom.suggestionsPanel.hidden = false;
+  dom.input.setAttribute("aria-expanded", "true");
+}
+
+function closeSuggestions() {
+  dom.suggestionsPanel.classList.remove("is-open");
+  dom.suggestionsPanel.hidden = true;
+  dom.input.setAttribute("aria-expanded", "false");
+  dom.input.setAttribute("aria-activedescendant", "");
+  state.highlightedSuggestion = -1;
+}
+
+function clearSuggestions() {
+  if (state.suggestionController) state.suggestionController.abort();
+  state.suggestions = [];
+  state.highlightedSuggestion = -1;
+  dom.suggestionsList.replaceChildren();
+  dom.suggestionsStatus.textContent = "Start typing to search cities.";
+  closeSuggestions();
+}
+
+function showFeedback(kind, title, message, options = {}) {
+  dom.feedback.dataset.kind = kind;
+  dom.feedback.hidden = false;
+  dom.feedbackTitle.textContent = title;
+  dom.feedbackMessage.textContent = message;
+  dom.retryBtn.hidden = !options.retry;
+}
+
+function hideFeedback() {
+  dom.feedback.hidden = true;
+}
+
+function setLoading(isLoading, label = "Loading weather...") {
+  state.loading = isLoading;
+  dom.body.classList.toggle("is-loading", isLoading);
+  dom.searchBtn.disabled = isLoading;
+  dom.locationBtn.disabled = isLoading;
+  dom.searchBtn.setAttribute("aria-label", isLoading ? label : "Search weather");
+  dom.weatherCard.setAttribute("aria-busy", isLoading ? "true" : "false");
+  dom.forecastPanel.setAttribute("aria-busy", isLoading ? "true" : "false");
+}
+
+function applyWeatherTheme(theme) {
+  dom.body.dataset.weather = state.settings.theme === "light" ? "idle" : theme;
+}
+
+function animateTemperature(nextValue, unit) {
+  const target = document.querySelector(".main-temp h1");
+  const suffix = `°${unit.toUpperCase()}`;
+
+  if (nextValue === null || nextValue === undefined || Number.isNaN(nextValue)) {
+    target.textContent = `--${suffix}`;
+    return;
+  }
+
+  if (state.settings.animations === "off" || state.displayedTemp === null) {
+    state.displayedTemp = nextValue;
+    target.textContent = `${Math.round(nextValue)}${suffix}`;
+    return;
+  }
+
+  const start = state.displayedTemp;
+  const end = nextValue;
+  const duration = 520;
+  const startedAt = performance.now();
+  state.displayedTemp = nextValue;
+
+  function tick(now) {
+    const progress = Math.min((now - startedAt) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 4);
+    const value = start + (end - start) * eased;
+    target.textContent = `${Math.round(value)}${suffix}`;
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+function addButtonRipple(event) {
+  const button = event.target.closest("button, .footer-links a");
+  if (!button || state.settings.animations === "off") return;
+  const rect = button.getBoundingClientRect();
+  const ripple = document.createElement("span");
+  const size = Math.max(rect.width, rect.height);
+  ripple.className = "ripple";
+  ripple.style.width = `${size}px`;
+  ripple.style.height = `${size}px`;
+  ripple.style.left = `${event.clientX - rect.left - size / 2}px`;
+  ripple.style.top = `${event.clientY - rect.top - size / 2}px`;
+  button.appendChild(ripple);
+  window.setTimeout(() => ripple.remove(), 550);
+}
+
+function getPokemonForCondition(condition = "") {
+  const text = condition.toLowerCase();
+  return POKEMON_RULES.find((rule) => rule.keywords.some((keyword) => text.includes(keyword))) || POKEMON_RULES[POKEMON_RULES.length - 1];
+}
+
+function normalizeLocationTarget(place) {
+  const label = [place.name, place.region, place.country].filter(Boolean).join(", ");
+  return {
+    id: place.id,
+    name: place.name,
+    region: place.region || "",
+    country: place.country || "",
+    lat: place.lat,
+    lon: place.lon,
+    label,
+    key: place.id ? `id:${place.id}` : label.toLowerCase()
+  };
+}
+
+function locationFromWeather(location, target) {
+  const name = location?.name || target?.name || "Current location";
+  const region = location?.region || target?.region || "";
+  const country = location?.country || target?.country || "";
+  const label = [name, region, country].filter(Boolean).join(", ");
+  const key = target?.id ? `id:${target.id}` : label.toLowerCase();
+  return {
+    id: target?.id || null,
+    name,
+    region,
+    country,
+    lat: location?.lat || target?.lat || null,
+    lon: location?.lon || target?.lon || null,
+    label,
+    key
+  };
+}
+
+function getWeatherQuery(target) {
+  if (typeof target === "string") return target;
+  if (target?.id) return `id:${target.id}`;
+  if (target?.lat !== undefined && target?.lon !== undefined) return `${target.lat},${target.lon}`;
+  return target?.label || target?.name || "";
+}
+
+function getTargetKey(target) {
+  if (typeof target === "string") return target.trim().toLowerCase();
+  if (target?.id) return `id:${target.id}`;
+  if (target?.lat !== undefined && target?.lon !== undefined) return `${Number(target.lat).toFixed(3)},${Number(target.lon).toFixed(3)}`;
+  return (target?.label || target?.name || "").toLowerCase();
+}
+
+function formatRegion(place) {
+  return [place.region, place.country].filter(Boolean).join(", ") || "WeatherAPI location";
+}
+
+function formatLocalTime(localtime) {
+  if (!localtime) return "Local time unavailable";
+  const [date, time] = localtime.split(" ");
+  if (!date || !time) return localtime;
+  return `${time} · ${date}`;
+}
+
+function formatDay(dateString) {
+  if (!dateString) return "Next day";
+  const date = new Date(`${dateString}T00:00:00`);
+  return date.toLocaleDateString(undefined, { weekday: "short", day: "numeric" });
+}
+
+function getTempValue(celsius, fahrenheit) {
+  return state.settings.unit === "f" ? fahrenheit : celsius;
+}
+
+function formatTemp(celsius, fahrenheit) {
+  const value = getTempValue(celsius, fahrenheit);
+  if (value === null || value === undefined || Number.isNaN(value)) return "--";
+  return `${Math.round(value)}°${state.settings.unit.toUpperCase()}`;
+}
+
+function formatTempRange(day) {
+  return `${formatTemp(day.maxtemp_c, day.maxtemp_f)} / ${formatTemp(day.mintemp_c, day.mintemp_f)}`;
+}
+
+function formatWind(current) {
+  return current.wind_kph !== undefined ? `${formatNumber(current.wind_kph)} kph` : "--";
+}
+
+function formatVisibility(current) {
+  return current.vis_km !== undefined ? `${formatNumber(current.vis_km)} km` : "--";
+}
+
+function formatUv(uv) {
+  if (uv === null || uv === undefined) return "--";
+  if (uv < 3) return `${formatNumber(uv)} Low`;
+  if (uv < 6) return `${formatNumber(uv)} Moderate`;
+  if (uv < 8) return `${formatNumber(uv)} High`;
+  return `${formatNumber(uv)} Very High`;
+}
+
+function formatAirQuality(airQuality) {
+  const epa = airQuality?.["us-epa-index"];
+  return epa ? `${aqiLabel(epa)} (${epa})` : "--";
+}
+
+function aqiLabel(index) {
+  return {
+    1: "Good",
+    2: "Moderate",
+    3: "Unhealthy for sensitive groups",
+    4: "Unhealthy",
+    5: "Very Unhealthy",
+    6: "Hazardous"
+  }[index] || "Unknown";
+}
+
+function formatNumber(value) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "--";
+  const number = Number(value);
+  return Number.isInteger(number) ? String(number) : number.toFixed(1);
+}
+
+function setText(selector, value) {
+  const element = document.querySelector(selector);
+  if (element) element.textContent = value;
+}
+
+function debounce(fn, delay) {
+  let timer = null;
+  return (...args) => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => fn(...args), delay);
+  };
+}
+
+function readStorage(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeStorage(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+function escapeHtml(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
