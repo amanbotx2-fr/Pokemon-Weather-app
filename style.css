@@ -1,155 +1,1742 @@
+:root {
+  --bg: #F7F3EC;
+  --text: #111111;
+  --muted: #666666;
+  --border: #E8DED3;
+  --card: #FFF9F2;
+  --card-strong: #fffdf9;
+  --surface-soft: #fbf2e8;
+  --sunny: #F4D35E;
+  --rain: #BFDDF5;
+  --cloudy: #D7D7D7;
+  --thunder: #FFD56A;
+  --snow: #EEF5FF;
+  --mist: #DCCFF5;
+  --grass: #CFE8C6;
+  --pink: #F4D9E5;
+  --accent: var(--pink);
+  --accent-strong: #e894ad;
+  --accent-soft: rgba(244, 217, 229, 0.48);
+  --radius-card: 32px;
+  --radius-button: 18px;
+  --radius-input: 20px;
+  --shadow-soft: 0 12px 40px rgba(34, 25, 16, 0.06);
+  --shadow-lift: 0 20px 54px rgba(34, 25, 16, 0.12);
+  --font-heading: "Sora", "Inter", sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-temp: "Space Grotesk", "Inter", sans-serif;
+}
 
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(to bottom, #e0f7fa, #ffffff);
-  color: #333;
-  padding: 20px;
+html {
+  background: var(--bg);
+  overflow-x: hidden;
 }
 
-.container {
-  max-width: 1000px;
-  margin: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  font-family: var(--font-body);
+  color: var(--text);
+  background:
+    radial-gradient(circle at 9% 11%, rgba(244, 211, 94, 0.2), transparent 30%),
+    radial-gradient(circle at 87% 12%, rgba(244, 217, 229, 0.44), transparent 32%),
+    linear-gradient(180deg, #fffaf3 0%, var(--bg) 55%, #f5eee3 100%);
+  transition: background 260ms ease, color 260ms ease;
+}
+
+body[data-weather="sunny"] {
+  --accent: var(--sunny);
+  --accent-strong: #dca928;
+  --accent-soft: rgba(244, 211, 94, 0.42);
+}
+
+body[data-weather="rain"] {
+  --accent: var(--rain);
+  --accent-strong: #6ba9d5;
+  --accent-soft: rgba(191, 221, 245, 0.58);
+}
+
+body[data-weather="cloudy"] {
+  --accent: var(--cloudy);
+  --accent-strong: #9b9b9b;
+  --accent-soft: rgba(215, 215, 215, 0.56);
+}
+
+body[data-weather="mist"] {
+  --accent: var(--mist);
+  --accent-strong: #aa91d8;
+  --accent-soft: rgba(220, 207, 245, 0.56);
+}
+
+body[data-weather="snow"] {
+  --accent: var(--snow);
+  --accent-strong: #9bb9dc;
+  --accent-soft: rgba(238, 245, 255, 0.82);
+}
+
+body[data-weather="thunder"] {
+  --accent: var(--thunder);
+  --accent-strong: #d9a311;
+  --accent-soft: rgba(255, 213, 106, 0.42);
+}
+
+body[data-theme="dark"] {
+  --bg: #171511;
+  --text: #f6efe5;
+  --muted: #b9ada1;
+  --border: rgba(242, 226, 205, 0.16);
+  --card: #221e19;
+  --card-strong: #2b251f;
+  --surface-soft: #191611;
+  --shadow-soft: 0 16px 50px rgba(0, 0, 0, 0.24);
+  --shadow-lift: 0 20px 60px rgba(0, 0, 0, 0.32);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 213, 106, 0.12), transparent 28%),
+    radial-gradient(circle at 86% 12%, rgba(220, 207, 245, 0.12), transparent 34%),
+    linear-gradient(180deg, #191610 0%, #12100d 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  body[data-theme="auto"] {
+    --bg: #171511;
+    --text: #f6efe5;
+    --muted: #b9ada1;
+    --border: rgba(242, 226, 205, 0.16);
+    --card: #221e19;
+    --card-strong: #2b251f;
+    --surface-soft: #191611;
+    --shadow-soft: 0 16px 50px rgba(0, 0, 0, 0.24);
+    --shadow-lift: 0 20px 60px rgba(0, 0, 0, 0.32);
+    background:
+      radial-gradient(circle at 12% 8%, rgba(255, 213, 106, 0.12), transparent 28%),
+      radial-gradient(circle at 86% 12%, rgba(220, 207, 245, 0.12), transparent 34%),
+      linear-gradient(180deg, #191610 0%, #12100d 100%);
+  }
+}
+
+body[data-weather="thunder"][data-theme="dynamic"],
+body[data-weather="thunder"][data-theme="auto"] {
+  background:
+    radial-gradient(circle at 18% 10%, rgba(255, 213, 106, 0.28), transparent 24%),
+    radial-gradient(circle at 74% 18%, rgba(32, 29, 50, 0.46), transparent 34%),
+    linear-gradient(180deg, #27221e 0%, #f7f0e6 72%);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button,
+a {
+  position: relative;
+  overflow: hidden;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.app-shell {
+  width: min(100%, 1536px);
+  margin: 0 auto;
+  padding: 28px;
+}
+
+.app-header {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.75fr) minmax(360px, 1.6fr) auto;
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+}
+
+.brand > span:last-child {
+  display: grid;
+  gap: 1px;
+}
+
+.brand strong {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.brand-mark,
+.footer-mark {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 auto;
+  border: 4px solid #1e1e1e;
+  border-radius: 50%;
+  background: linear-gradient(#f48184 0 44%, #1e1e1e 44% 53%, #f8f5ef 53% 100%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.65);
+}
+
+.brand-mark span,
+.footer-mark::after {
+  width: 17px;
+  height: 17px;
+  border: 4px solid #1e1e1e;
+  border-radius: 50%;
+  background: #f8f5ef;
+  content: "";
 }
 
 .search-bar {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  position: relative;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  min-height: 64px;
+  padding: 8px 10px 8px 20px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 86%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+
+.search-leading {
+  color: var(--text);
+  margin-right: 12px;
 }
 
 #city-input {
-  padding: 10px;
-  font-size: 16px;
-  flex: 1;
-  min-width: 200px;
-  max-width: 300px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: var(--text);
+  background: transparent;
+  font-size: 0.96rem;
+}
+
+#city-input::placeholder {
+  color: color-mix(in srgb, var(--muted) 80%, transparent);
+}
+
+#search-btn,
+.location-button,
+.icon-button,
+.trainer-button,
+.secondary-button,
+.save-city-button,
+.menu-action {
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: var(--card);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease, opacity 180ms ease;
 }
 
 #search-btn {
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  background-color: #ffcb05;
-  border: none;
-  border-radius: 5px;
-  transition: background 0.2s ease;
-}
-#search-btn:hover {
-  background-color: #f2b807;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border-color: color-mix(in srgb, var(--accent-strong) 34%, var(--border));
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 70%, #fffaf3), var(--accent-strong) 78%);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent-strong) 28%, transparent);
 }
 
-.weather-box {
-  background-color: #ffffffd9;
-  border-radius: 10px;
-  padding: 20px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+.location-button {
+  width: 44px;
+  height: 44px;
+  margin-right: 6px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--card) 70%, var(--accent) 30%);
+}
+
+.button-spinner {
+  display: none;
+  width: 19px;
+  height: 19px;
+  border: 2px solid rgba(17, 17, 17, 0.22);
+  border-top-color: var(--text);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+.is-loading #search-btn svg {
+  display: none;
+}
+
+.is-loading #search-btn .button-spinner {
+  display: block;
+}
+
+#search-btn:hover,
+.location-button:hover,
+.icon-button:hover,
+.trainer-button:hover,
+.secondary-button:hover,
+.save-city-button:hover,
+.menu-action:hover,
+.type:hover,
+.day:hover,
+.footer-links a:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+}
+
+#search-btn:focus-visible,
+.location-button:focus-visible,
+.icon-button:focus-visible,
+.trainer-button:focus-visible,
+.secondary-button:focus-visible,
+.save-city-button:focus-visible,
+.menu-action:focus-visible,
+#city-input:focus-visible,
+.footer-links a:focus-visible,
+.brand:focus-visible,
+.menu-location:focus-visible,
+.remove-location:focus-visible,
+.suggestions-panel button:focus-visible,
+.setting-group input:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent-strong) 46%, transparent);
+  outline-offset: 3px;
+}
+
+.suggestions-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  left: 0;
+  z-index: 40;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--card-strong) 96%, transparent);
+  box-shadow: var(--shadow-lift);
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 170ms ease, transform 170ms ease;
+}
+
+.suggestions-panel.is-open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.suggestions-status {
+  padding: 8px 12px 10px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+#suggestions-list {
+  display: grid;
+  gap: 6px;
+  max-height: 312px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+#suggestions-list li {
+  border-radius: 16px;
+}
+
+#suggestions-list li.is-highlighted {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+#suggestions-list button {
+  width: 100%;
+  display: grid;
+  gap: 3px;
+  padding: 12px;
+  border: 0;
+  border-radius: 16px;
+  color: var(--text);
+  background: transparent;
+  text-align: left;
+}
+
+#suggestions-list strong {
+  font-size: 0.95rem;
+}
+
+#suggestions-list span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.icon-button,
+.trainer-button {
+  min-width: 52px;
+  height: 52px;
+  border-radius: var(--radius-button);
+}
+
+.trainer-button {
+  display: inline-flex;
+  gap: 10px;
+  padding: 0 14px 0 8px;
+}
+
+.trainer-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--accent-strong) 28%, var(--border));
+  background:
+    radial-gradient(circle at 50% 38%, #ffd7b1 0 18%, transparent 19%),
+    linear-gradient(#e54e48 0 35%, #232323 35% 43%, #f4efe9 43%);
+}
+
+.trainer-label {
+  font-weight: 800;
+}
+
+.menu-wrap {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 35;
+  width: min(340px, calc(100vw - 32px));
+  max-height: min(620px, calc(100vh - 120px));
+  padding: 16px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--card-strong) 96%, transparent);
+  box-shadow: var(--shadow-lift);
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 170ms ease, transform 170ms ease;
+}
+
+.dropdown-menu.is-open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.trainer-menu {
+  width: min(380px, calc(100vw - 32px));
+}
+
+.menu-heading {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.menu-heading strong {
+  font-family: var(--font-heading);
+}
+
+.menu-heading span,
+.menu-section > span,
+.empty-menu,
+.about-card p {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.menu-section {
+  margin-top: 16px;
+}
+
+.menu-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.menu-location-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.menu-location,
+.remove-location {
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: color-mix(in srgb, var(--card) 88%, var(--accent) 12%);
+}
+
+.menu-location {
+  display: grid;
+  gap: 3px;
+  padding: 11px 12px;
+  border-radius: 16px;
+  text-align: left;
+}
+
+.menu-location span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.remove-location {
+  width: 42px;
+  border-radius: 14px;
+  font-size: 1.2rem;
+}
+
+.menu-action {
+  width: 100%;
+  grid-template-columns: auto 1fr;
+  justify-content: start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  text-align: left;
+}
+
+.about-card {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+}
+
+.about-card p {
+  margin: 7px 0 0;
+  line-height: 1.5;
+}
+
+.feedback-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--card) 88%, var(--accent) 12%);
+  box-shadow: var(--shadow-soft);
+}
+
+.feedback-card strong {
+  font-family: var(--font-heading);
+}
+
+.feedback-card p {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.secondary-button,
+.save-city-button {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card-strong) 86%, var(--accent) 14%);
+  font-weight: 800;
+}
+
+.save-city-button {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.save-city-button.is-saved {
+  border-color: color-mix(in srgb, var(--accent-strong) 48%, var(--border));
+  background: color-mix(in srgb, var(--accent) 48%, var(--card));
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1.2fr) minmax(240px, 0.54fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.dashboard-card,
+.widget {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--card) 88%, var(--card-strong) 12%);
+  box-shadow: var(--shadow-soft);
+}
+
+.weather-overview {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 460px;
+  overflow: hidden;
+  padding: 30px;
+  background:
+    linear-gradient(132deg, color-mix(in srgb, var(--accent) 34%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--card-strong) 92%, transparent), color-mix(in srgb, var(--surface-soft) 86%, transparent));
+}
+
+.weather-overview::after,
+.forecast-panel::after {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.28) 46%, transparent 74%);
+  transform: translateX(-120%);
+  content: "";
+}
+
+.is-loading .weather-overview::after,
+.is-loading .forecast-panel::after {
+  opacity: 1;
+  animation: shimmer 1200ms ease-in-out infinite;
+}
+
+.weather-content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 28px;
+  max-width: 58%;
+}
+
+.section-kicker {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.location-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.location-row svg {
+  width: 25px;
+  height: 25px;
+  margin-top: 5px;
+}
+
+.location {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  line-height: 1.08;
+}
+
+.region,
+.date,
+.feels-like,
+.details,
+.panel-heading p,
+.guide-heading p,
+.widget p,
+.type p,
+.footer p {
+  color: var(--muted);
+}
+
+.region {
+  margin: 5px 0 0;
+}
+
+.location-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.date {
+  display: inline-flex;
+  width: fit-content;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 72%, transparent);
+  font-size: 0.84rem;
 }
 
 .main-temp h1 {
-  font-size: 48px;
-  margin-bottom: 5px;
+  margin: 0;
+  font-family: var(--font-temp);
+  font-size: 4.35rem;
+  line-height: 0.95;
+  letter-spacing: 0;
 }
 
-.status, .details {
-  font-size: 18px;
-  margin-bottom: 10px;
+.status {
+  margin: 18px 0 0;
+  color: var(--text);
+  font-size: 1.35rem;
+  font-weight: 800;
 }
 
-.pokemon-image img {
-  width: 120px;
-  height: auto;
-  margin-top: 15px;
+.feels-like,
+.details {
+  margin: 12px 0 0;
+  font-size: 0.95rem;
 }
 
+.details {
+  display: none;
+}
+
+.weather-illustration {
+  position: absolute;
+  inset: 36px 18px auto auto;
+  width: 250px;
+  height: 242px;
+}
+
+.sun-core {
+  position: absolute;
+  top: 22px;
+  right: 32px;
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffeaa4, #f4c33b 72%);
+  box-shadow: 0 20px 45px rgba(244, 195, 59, 0.32);
+  animation: float-soft 5s ease-in-out infinite;
+}
+
+.cloud {
+  position: absolute;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  filter: drop-shadow(0 18px 16px rgba(177, 156, 132, 0.12));
+}
+
+.cloud::before,
+.cloud::after {
+  position: absolute;
+  border-radius: 50%;
+  background: inherit;
+  content: "";
+}
+
+.cloud-one {
+  top: 94px;
+  right: 80px;
+  width: 154px;
+  height: 52px;
+}
+
+.cloud-one::before {
+  left: 30px;
+  bottom: 18px;
+  width: 68px;
+  height: 68px;
+}
+
+.cloud-one::after {
+  right: 24px;
+  bottom: 11px;
+  width: 54px;
+  height: 54px;
+}
+
+.cloud-two {
+  right: 4px;
+  bottom: 28px;
+  width: 138px;
+  height: 42px;
+  opacity: 0.72;
+}
+
+.cloud-two::before {
+  left: 28px;
+  bottom: 13px;
+  width: 52px;
+  height: 52px;
+}
+
+.cloud-two::after {
+  right: 18px;
+  bottom: 8px;
+  width: 44px;
+  height: 44px;
+}
+
+.spark,
+.rain-drop,
+.storm-bolt {
+  position: absolute;
+}
+
+.spark {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.95);
+  transform: rotate(45deg);
+}
+
+.spark-one {
+  top: 31px;
+  left: 50px;
+}
+
+.spark-two {
+  bottom: 80px;
+  left: 83px;
+  opacity: 0.65;
+}
+
+.rain-drop {
+  display: none;
+  width: 8px;
+  height: 18px;
+  border-radius: 999px;
+  background: #74aed9;
+  transform: rotate(18deg);
+}
+
+.drop-one {
+  right: 128px;
+  bottom: 18px;
+}
+
+.drop-two {
+  right: 82px;
+  bottom: 4px;
+}
+
+.storm-bolt {
+  display: none;
+  right: 102px;
+  bottom: 24px;
+  width: 32px;
+  height: 48px;
+  clip-path: polygon(42% 0, 100% 0, 62% 42%, 92% 42%, 27% 100%, 43% 55%, 10% 55%);
+  background: var(--thunder);
+}
+
+body[data-weather="rain"] .rain-drop,
+body[data-weather="thunder"] .storm-bolt {
+  display: block;
+}
+
+body[data-weather="snow"] .sun-core {
+  background: radial-gradient(circle at 35% 30%, #ffffff, #dceeff 72%);
+  box-shadow: 0 20px 45px rgba(154, 184, 217, 0.24);
+}
+
+.metric-grid {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  align-self: end;
+  margin-top: 24px;
+}
+
+.metric-card {
+  display: grid;
+  gap: 5px;
+  min-height: 78px;
+  padding: 15px;
+  border: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--card) 78%, transparent);
+}
+
+.metric-card svg {
+  color: var(--accent-strong);
+}
+
+.metric-card strong {
+  font-size: 1rem;
+}
+
+.metric-card span {
+  color: var(--muted);
+  font-size: 0.77rem;
+}
+
+.pokemon-partner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(240px, 1fr);
+  grid-template-rows: 1fr auto;
+  gap: 18px;
+  min-height: 460px;
+  overflow: hidden;
+  padding: 32px;
+  background:
+    radial-gradient(circle at 76% 42%, color-mix(in srgb, var(--accent) 35%, transparent), transparent 34%),
+    linear-gradient(135deg, color-mix(in srgb, var(--card-strong) 96%, transparent), color-mix(in srgb, var(--surface-soft) 80%, transparent));
+}
+
+.pokemon-partner::after {
+  position: absolute;
+  top: 32px;
+  right: 32px;
+  width: 34px;
+  height: 34px;
+  border: 8px solid color-mix(in srgb, var(--border) 58%, transparent);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 7px color-mix(in srgb, var(--card) 90%, transparent);
+  content: "";
+}
+
+.partner-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.partner-name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.partner-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 13px;
+  border-radius: 999px;
+  color: #fffaf3;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.badge-neutral {
+  background: #9f958b;
+}
+
+.badge-accent {
+  background: var(--accent-strong);
+}
+
+.partner-description,
+.partner-weather {
+  max-width: 34ch;
+  color: color-mix(in srgb, var(--text) 82%, var(--muted));
+  line-height: 1.55;
+}
+
+.partner-description {
+  margin: 26px 0 0;
+}
+
+.partner-weather {
+  margin: 14px 0 0;
+  color: var(--muted);
+}
+
+.pokemon-stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+}
+
+.stage-orb {
+  position: absolute;
+  width: min(80%, 300px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.76), color-mix(in srgb, var(--accent) 32%, transparent) 72%, transparent);
+}
+
+#pokemon-img {
+  position: relative;
+  width: min(100%, 254px);
+  min-width: 160px;
+  image-rendering: auto;
+  filter: drop-shadow(0 24px 18px rgba(70, 53, 34, 0.18));
+  animation: float-pokemon 4.8s ease-in-out infinite;
+  transition: transform 220ms ease, opacity 220ms ease;
+}
+
+.partner-stats {
+  position: relative;
+  z-index: 2;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.partner-stats div {
+  display: grid;
+  gap: 5px;
+}
+
+.partner-stats span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.partner-stats strong {
+  font-size: 0.92rem;
+}
+
+.side-widgets {
+  display: grid;
+  gap: 16px;
+}
+
+.widget {
+  display: flex;
+  gap: 16px;
+  padding: 26px;
+}
+
+.trainer-tip {
+  min-height: 164px;
+  background:
+    radial-gradient(circle at 88% 83%, rgba(255, 255, 255, 0.48), transparent 23%),
+    linear-gradient(145deg, color-mix(in srgb, var(--pink) 62%, transparent), color-mix(in srgb, var(--card) 96%, transparent));
+}
+
+.air-widget {
+  min-height: 228px;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--grass) 68%, transparent), color-mix(in srgb, var(--card) 94%, transparent));
+}
+
+.widget-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 13px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--card-strong) 68%, transparent);
+}
+
+.widget h2 {
+  margin: 2px 0 12px;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+}
+
+.widget p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.widget-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.air-label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-heading);
+  font-size: 1.55rem;
+}
+
+.air-score {
+  display: grid;
+  place-items: center;
+  width: 108px;
+  height: 108px;
+  flex: 0 0 auto;
+  border: 6px dotted rgba(81, 151, 69, 0.28);
+  border-radius: 50%;
+}
+
+.air-score strong {
+  font-size: 1.5rem;
+}
+
+.air-score span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(330px, 0.42fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.forecast-panel,
+.details-panel,
+.pokemon-guide {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+}
+
+.panel-heading,
+.guide-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.panel-heading.compact {
+  margin-bottom: 12px;
+}
+
+.panel-heading h2,
+.guide-heading h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+}
+
+.panel-heading p,
+.guide-heading p {
+  margin: 0;
+  font-size: 0.88rem;
+}
 
 .forecast {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(var(--forecast-count, 5), minmax(132px, 1fr));
+  gap: 14px;
 }
 
 .forecast .day {
-  flex: 1;
-  min-width: 120px;
-  background: #f8f8f8;
-  border-radius: 8px;
-  padding: 10px;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  min-height: 210px;
+  padding: 17px 12px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--card) 82%, transparent);
   text-align: center;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
 }
 
+.forecast .day.active {
+  border-color: color-mix(in srgb, var(--accent-strong) 40%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 30%, transparent), color-mix(in srgb, var(--card) 88%, transparent));
+}
+
+.forecast .day p {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.forecast .day h3 {
+  margin: 8px 0 4px;
+  font-family: var(--font-heading);
+  font-size: 1.04rem;
+}
+
+.forecast .day img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  margin: 8px 0 2px;
+}
+
+.forecast .day .forecast-pokemon {
+  width: 48px;
+  height: 48px;
+  margin-top: 10px;
+  filter: drop-shadow(0 8px 8px rgba(34, 25, 16, 0.12));
+}
+
+.forecast .day small {
+  min-height: 34px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.28;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.detail-card {
+  display: grid;
+  gap: 7px;
+  min-height: 74px;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--card) 82%, transparent);
+}
+
+.detail-card span {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.detail-card strong {
+  overflow-wrap: anywhere;
+  font-size: 0.92rem;
+}
 
 .pokemon-guide {
-  margin-top: 30px;
-}
-
-.pokemon-guide h2 {
-  text-align: center;
-  margin-bottom: 20px;
+  margin-top: 16px;
 }
 
 .types-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(9, minmax(116px, 1fr));
+  gap: 12px;
 }
 
 .type {
-  text-align: center;
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 94px;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--card) 74%, transparent);
+  transform-style: preserve-3d;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.type:hover {
+  border-color: color-mix(in srgb, var(--accent-strong) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 22%, var(--card));
+  transform: translateY(-3px) rotate(-0.4deg);
 }
 
 .type img {
   width: 60px;
-  height: auto;
+  height: 60px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 8px rgba(34, 25, 16, 0.12));
 }
 
+.type h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-heading);
+  font-size: 0.86rem;
+}
 
-@media (max-width: 768px) {
-  .main-temp h1 {
-    font-size: 36px;
-  }
-  #city-input, #search-btn {
-    width: 100%;
-  }
-  .forecast {
-    flex-direction: column;
-    align-items: center;
-  }
-  .forecast .day {
-    width: 80%;
-  }
+.type p,
+.type span {
+  display: block;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.type span {
+  margin-top: 5px;
+  color: var(--accent-strong);
+  font-weight: 800;
 }
 
 .footer {
-  text-align: center;
-  padding: 20px 10px;
-  font-size: 14px;
-  color: #555;
-  background-color: #f1f1f1;
-  margin-top: 40px;
-  border-top: 1px solid #ddd;
+  width: min(100%, 1536px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: auto auto auto 1fr auto;
+  gap: 22px;
+  align-items: center;
+  padding: 18px 28px 28px;
 }
 
-.footer a {
-  color: #0073e6;
+.footer-mark {
+  width: 46px;
+  height: 46px;
+  border-width: 0;
+  opacity: 0.22;
+}
+
+.footer p {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.heart-icon {
+  color: #d65d61;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.footer-links a {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--card) 85%, transparent);
   text-decoration: none;
-  margin: 0 5px;
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
-.footer a:hover {
-  text-decoration: underline;
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(25, 20, 16, 0.34);
+}
+
+.settings-card {
+  width: min(560px, 100%);
+  max-height: min(720px, calc(100vh - 40px));
+  overflow-y: auto;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  background: var(--card-strong);
+  box-shadow: 0 30px 90px rgba(17, 17, 17, 0.24);
+}
+
+.modal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.modal-heading h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+}
+
+.setting-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+.setting-group legend {
+  padding: 0 8px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.setting-group label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--card) 86%, transparent);
+}
+
+.setting-group input {
+  accent-color: var(--accent-strong);
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.42);
+  transform: scale(0);
+  animation: ripple 520ms ease-out;
+}
+
+.animations-off *,
+.animations-off *::before,
+.animations-off *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -8px, 0);
+  }
+}
+
+@keyframes float-pokemon {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.025);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 1280px) {
+  .app-header,
+  .dashboard-grid,
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-header {
+    gap: 16px;
+  }
+
+  .header-actions {
+    justify-content: flex-start;
+  }
+
+  .side-widgets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .types-grid {
+    grid-template-columns: repeat(auto-fit, minmax(176px, 1fr));
+  }
+
+  .footer {
+    grid-template-columns: auto 1fr;
+  }
+
+  .footer-links {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 780px) {
+  .app-shell {
+    padding: 18px;
+  }
+
+  .brand strong {
+    font-size: 1.1rem;
+  }
+
+  .brand-mark {
+    width: 48px;
+    height: 48px;
+  }
+
+  .search-bar {
+    min-height: 58px;
+    padding-left: 16px;
+  }
+
+  .search-leading {
+    display: none;
+  }
+
+  #search-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .location-button {
+    width: 42px;
+    height: 42px;
+  }
+
+  .weather-overview,
+  .pokemon-partner,
+  .forecast-panel,
+  .details-panel,
+  .pokemon-guide,
+  .widget {
+    border-radius: 24px;
+  }
+
+  .weather-overview {
+    gap: 22px;
+    min-height: auto;
+    padding: 24px;
+  }
+
+  .weather-content {
+    max-width: none;
+    gap: 20px;
+  }
+
+  .weather-illustration {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: 168px;
+    transform: none;
+  }
+
+  .main-temp h1 {
+    font-size: 3.35rem;
+  }
+
+  .location {
+    font-size: 1.7rem;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pokemon-partner {
+    grid-template-columns: 1fr;
+  }
+
+  .partner-name {
+    font-size: 2.4rem;
+  }
+
+  .partner-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .side-widgets {
+    grid-template-columns: 1fr;
+  }
+
+  .air-widget {
+    min-height: auto;
+  }
+
+  .panel-heading,
+  .guide-heading,
+  .feedback-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .feedback-actions {
+    justify-content: flex-start;
+  }
+
+  .forecast {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .forecast .day {
+    min-width: 154px;
+    scroll-snap-align: start;
+  }
+
+  .types-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer {
+    grid-template-columns: 1fr;
+    padding: 14px 18px 24px;
+  }
+
+  .footer-links {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 500px) {
+  .app-shell {
+    width: 100vw;
+    max-width: 100vw;
+    padding: 14px;
+  }
+
+  .app-header {
+    gap: 14px;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+  }
+
+  .trainer-label {
+    display: none;
+  }
+
+  .trainer-button {
+    width: 52px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .search-bar {
+    width: min(354px, calc(100vw - 36px));
+    max-width: min(354px, calc(100vw - 36px));
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 7px 8px 7px 16px;
+  }
+
+  .location-button {
+    display: none;
+  }
+
+  .weather-overview,
+  .pokemon-partner,
+  .forecast-panel,
+  .details-panel,
+  .pokemon-guide,
+  .widget,
+  .feedback-card {
+    width: min(354px, calc(100vw - 36px));
+    max-width: min(354px, calc(100vw - 36px));
+  }
+
+  .feedback-card > div {
+    min-width: 0;
+  }
+
+  .weather-overview,
+  .pokemon-partner,
+  .forecast-panel,
+  .details-panel,
+  .pokemon-guide {
+    padding: 20px;
+  }
+
+  .main-temp h1 {
+    font-size: 3rem;
+  }
+
+  .metric-grid {
+    gap: 10px;
+  }
+
+  .metric-card {
+    padding: 13px;
+  }
+
+  .location-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .save-city-button {
+    width: 100%;
+    justify-content: center;
+  }
 }

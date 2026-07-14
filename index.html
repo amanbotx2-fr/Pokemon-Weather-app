@@ -2,85 +2,412 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title> Pokémon Weather App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pokémon Weather Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <div class="container">
-    <div class="search-bar">
-      <input type="text" id="city-input" placeholder="Enter city..." />
-      <button id="search-btn">Search</button>
-    </div>
+<body data-theme="auto" data-weather="idle">
+  <main class="app-shell" aria-labelledby="app-title">
+    <header class="app-header">
+      <a class="brand" href="#" aria-label="Pokémon Weather home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span>
+          <strong id="app-title">Pokémon</strong>
+          <strong>Weather</strong>
+        </span>
+      </a>
 
-    <div class="weather-box">
-      <div class="location">--</div>
-      <div class="date">--</div>
-      <div class="main-temp">
-        <h1>--°C</h1>
-        <p class="status">--</p>
-        <p class="details">💨 -- kph &nbsp;&nbsp; 💧 --%</p>
+      <form class="search-bar" id="search-form" role="search" aria-label="City weather search">
+        <label class="sr-only" for="city-input">Search for a city</label>
+        <svg class="search-leading" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 21s7-4.6 7-11a7 7 0 1 0-14 0c0 6.4 7 11 7 11Z"></path>
+          <circle cx="12" cy="10" r="2.5"></circle>
+        </svg>
+        <input
+          type="text"
+          id="city-input"
+          placeholder="Search for a city..."
+          autocomplete="off"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-controls="suggestions-list"
+          aria-activedescendant=""
+        />
+        <button class="location-button" id="current-location-btn" type="button" aria-label="Use current location">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2v4"></path>
+            <path d="M12 18v4"></path>
+            <path d="M2 12h4"></path>
+            <path d="M18 12h4"></path>
+            <circle cx="12" cy="12" r="5"></circle>
+          </svg>
+        </button>
+        <button id="search-btn" type="submit" aria-label="Search weather">
+          <span class="button-spinner" aria-hidden="true"></span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3.5-3.5"></path>
+          </svg>
+        </button>
+        <div class="suggestions-panel" id="suggestions-panel" role="presentation">
+          <div class="suggestions-status" id="suggestions-status" aria-live="polite">Start typing to search cities.</div>
+          <ul id="suggestions-list" role="listbox" aria-label="City suggestions"></ul>
+        </div>
+      </form>
+
+      <nav class="header-actions" aria-label="Dashboard actions">
+        <button class="icon-button" id="settings-btn" type="button" aria-label="Open settings" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"></path>
+            <path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.05.05a2 2 0 1 1-2.83 2.83l-.05-.05A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1 .6 1.8 1.8 0 0 0-.5 1.3V21a2 2 0 1 1-4 0v-.08A1.8 1.8 0 0 0 8 19.4a1.8 1.8 0 0 0-1.98.36l-.05.05a2 2 0 1 1-2.83-2.83l.05-.05A1.8 1.8 0 0 0 3.6 15a1.8 1.8 0 0 0-.6-1 1.8 1.8 0 0 0-1.3-.5H1.6a2 2 0 1 1 0-4h.08A1.8 1.8 0 0 0 3.6 8a1.8 1.8 0 0 0-.36-1.98l-.05-.05a2 2 0 1 1 2.83-2.83l.05.05A1.8 1.8 0 0 0 8 3.6a1.8 1.8 0 0 0 1-.6 1.8 1.8 0 0 0 .5-1.3V1.6a2 2 0 1 1 4 0v.08A1.8 1.8 0 0 0 15 3.6a1.8 1.8 0 0 0 1.98-.36l.05-.05a2 2 0 1 1 2.83 2.83l-.05.05A1.8 1.8 0 0 0 19.4 8c.25.39.6.73 1 .95.41.23.87.35 1.35.35h.05a2 2 0 1 1 0 4h-.08A1.8 1.8 0 0 0 19.4 15Z"></path>
+          </svg>
+        </button>
+        <div class="menu-wrap">
+          <button class="icon-button" id="favorites-btn" type="button" aria-label="Open favorites" aria-haspopup="menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m12 3 2.7 5.47 6.03.88-4.36 4.25 1.03 6L12 16.75 6.6 19.6l1.03-6-4.36-4.25 6.03-.88L12 3Z"></path>
+            </svg>
+          </button>
+          <div class="dropdown-menu" id="favorites-menu" role="menu" aria-label="Favorite cities">
+            <div class="menu-heading">
+              <strong>Favorite Cities</strong>
+              <span>Saved locally</span>
+            </div>
+            <div id="favorites-list" class="menu-list"></div>
+          </div>
+        </div>
+        <div class="menu-wrap">
+          <button class="trainer-button" id="trainer-btn" type="button" aria-label="Open trainer profile" aria-haspopup="menu" aria-expanded="false">
+            <span class="trainer-avatar" aria-hidden="true"></span>
+            <span class="trainer-label">Trainer</span>
+          </button>
+          <div class="dropdown-menu trainer-menu" id="trainer-menu" role="menu" aria-label="Trainer profile">
+            <div class="menu-heading">
+              <strong>Trainer Profile</strong>
+              <span>Recent routes and quick actions</span>
+            </div>
+            <button class="menu-action" id="trainer-location-btn" type="button" role="menuitem">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="5"></circle>
+                <path d="M12 2v4"></path>
+                <path d="M12 18v4"></path>
+                <path d="M2 12h4"></path>
+                <path d="M18 12h4"></path>
+              </svg>
+              Current location
+            </button>
+            <div class="menu-section">
+              <span>Recent Searches</span>
+              <div id="recent-list" class="menu-list"></div>
+            </div>
+            <div class="menu-section">
+              <span>Favorites</span>
+              <div id="trainer-favorites-list" class="menu-list"></div>
+            </div>
+            <div class="about-card">
+              <strong>About</strong>
+              <p>Weather data from WeatherAPI. Pokémon sprites from PokémonDB.</p>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <section class="feedback-card" id="feedback-card" aria-live="assertive" hidden>
+      <div>
+        <strong id="feedback-title">No city selected yet.</strong>
+        <p id="feedback-message">Search for a city or use current location to start.</p>
+      </div>
+      <div class="feedback-actions">
+        <button class="secondary-button" id="retry-btn" type="button" hidden>Retry</button>
+        <button class="secondary-button" data-search-city="Jaipur" type="button">Jaipur</button>
+        <button class="secondary-button" data-search-city="Delhi" type="button">Delhi</button>
+        <button class="secondary-button" data-search-city="Mumbai" type="button">Mumbai</button>
+      </div>
+    </section>
+
+    <section class="dashboard-grid" aria-label="Current Pokémon weather dashboard" aria-live="polite">
+      <article class="weather-box dashboard-card weather-overview" aria-busy="false">
+        <div class="weather-content">
+          <div>
+            <p class="section-kicker">Current Conditions</p>
+            <div class="location-row">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 21s7-4.6 7-11a7 7 0 1 0-14 0c0 6.4 7 11 7 11Z"></path>
+                <circle cx="12" cy="10" r="2.5"></circle>
+              </svg>
+              <div>
+                <h1 class="location">No city selected</h1>
+                <p class="region">Search or use your location</p>
+              </div>
+            </div>
+            <div class="location-actions">
+              <p class="date">Ready for your next weather partner</p>
+              <button class="save-city-button" id="save-city-btn" type="button" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m12 3 2.7 5.47 6.03.88-4.36 4.25 1.03 6L12 16.75 6.6 19.6l1.03-6-4.36-4.25 6.03-.88L12 3Z"></path>
+                </svg>
+                <span>Save City</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="main-temp">
+            <h1>--°C</h1>
+            <p class="status">Waiting for weather</p>
+            <p class="feels-like">Search to reveal details.</p>
+            <p class="details">Wind -- kph · Humidity --%</p>
+          </div>
+        </div>
+
+        <div class="weather-illustration" aria-hidden="true">
+          <span class="sun-core"></span>
+          <span class="cloud cloud-one"></span>
+          <span class="cloud cloud-two"></span>
+          <span class="storm-bolt"></span>
+          <span class="rain-drop drop-one"></span>
+          <span class="rain-drop drop-two"></span>
+          <span class="spark spark-one"></span>
+          <span class="spark spark-two"></span>
+        </div>
+
+        <div class="metric-grid" aria-label="Weather metrics">
+          <div class="metric-card">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 12h11a3 3 0 1 0-3-3"></path>
+              <path d="M4 17h8a2 2 0 1 1-2 2"></path>
+            </svg>
+            <strong class="metric-wind">--</strong>
+            <span>Wind</span>
+          </div>
+          <div class="metric-card">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3s6 6.1 6 10a6 6 0 0 1-12 0c0-3.9 6-10 6-10Z"></path>
+            </svg>
+            <strong class="metric-humidity">--</strong>
+            <span>Humidity</span>
+          </div>
+          <div class="metric-card">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <strong class="metric-visibility">--</strong>
+            <span>Visibility</span>
+          </div>
+          <div class="metric-card">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2"></path>
+              <path d="M12 20v2"></path>
+              <path d="M2 12h2"></path>
+              <path d="M20 12h2"></path>
+            </svg>
+            <strong class="metric-uv">--</strong>
+            <span>UV Index</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="dashboard-card pokemon-partner">
+        <div class="partner-copy">
+          <p class="section-kicker">Today's Weather Partner</p>
+          <h2 class="partner-name">Pidgey</h2>
+          <div class="partner-badges" aria-label="Pokémon types">
+            <span class="badge badge-neutral">Normal</span>
+            <span class="badge badge-accent">Flying</span>
+          </div>
+          <p class="partner-description">Search a city to match the sky with the right Pokémon companion.</p>
+          <p class="partner-weather">Pidgey enjoys breezy skies and calm weather routes.</p>
+        </div>
+
+        <div class="pokemon-stage">
+          <span class="stage-orb" aria-hidden="true"></span>
+          <img id="pokemon-img" src="https://img.pokemondb.net/sprites/black-white/anim/normal/pidgey.gif" alt="Pidgey waiting for weather" loading="eager" />
+        </div>
+
+        <div class="partner-stats" aria-label="Pokémon details">
+          <div>
+            <span>Height</span>
+            <strong class="partner-height">0.3 m</strong>
+          </div>
+          <div>
+            <span>Weight</span>
+            <strong class="partner-weight">1.8 kg</strong>
+          </div>
+          <div>
+            <span>Ability</span>
+            <strong class="partner-ability">Keen Eye</strong>
+          </div>
+        </div>
+      </article>
+
+      <aside class="side-widgets" aria-label="Weather widgets">
+        <article class="widget trainer-tip">
+          <div class="widget-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 10a4 4 0 1 1 8 0v3a4 4 0 0 1-8 0v-3Z"></path>
+              <path d="M6 21a6 6 0 0 1 12 0"></path>
+              <path d="M9 9h6"></path>
+            </svg>
+          </div>
+          <div>
+            <h2>Trainer Tip</h2>
+            <p class="trainer-copy">Search a city to discover which Pokémon fits the weather outside.</p>
+          </div>
+        </article>
+
+        <article class="widget air-widget">
+          <div>
+            <div class="widget-title-row">
+              <div class="widget-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M11 20A7 7 0 0 1 4 13c0-5 5-9 16-9 0 11-4 16-9 16Z"></path>
+                  <path d="M8.5 14.5 14 9"></path>
+                </svg>
+              </div>
+              <h2>Air Quality</h2>
+            </div>
+            <strong class="air-label">Ready</strong>
+            <p class="air-description">Air quality appears when the city supports it.</p>
+          </div>
+          <div class="air-score" aria-label="Air quality score">
+            <strong class="air-score-value">--</strong>
+            <span>AQI</span>
+          </div>
+        </article>
+      </aside>
+    </section>
+
+    <section class="content-grid" aria-label="Forecast and details">
+      <article class="dashboard-card forecast-panel" aria-busy="false">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Forecast</p>
+            <h2>Next 5 Days</h2>
+          </div>
+          <p class="forecast-summary">Search a city to load the forecast.</p>
+        </div>
+        <div class="forecast" id="forecast-list">
+          <div class="day active empty-day">
+            <p>Today</p>
+            <h3>--°</h3>
+            <small>Search city</small>
+          </div>
+          <div class="day empty-day"><p>Day 2</p><h3>--</h3><small>Waiting</small></div>
+          <div class="day empty-day"><p>Day 3</p><h3>--</h3><small>Waiting</small></div>
+          <div class="day empty-day"><p>Day 4</p><h3>--</h3><small>Waiting</small></div>
+          <div class="day empty-day"><p>Day 5</p><h3>--</h3><small>Waiting</small></div>
+        </div>
+      </article>
+
+      <article class="dashboard-card details-panel">
+        <div class="panel-heading compact">
+          <div>
+            <p class="section-kicker">Atmosphere</p>
+            <h2>Weather Details</h2>
+          </div>
+        </div>
+        <div class="details-grid" id="details-grid" aria-label="Detailed weather stats">
+          <div class="detail-card"><span>Feels Like</span><strong class="detail-feels">--</strong></div>
+          <div class="detail-card"><span>Humidity</span><strong class="detail-humidity">--</strong></div>
+          <div class="detail-card"><span>Wind</span><strong class="detail-wind">--</strong></div>
+          <div class="detail-card"><span>Visibility</span><strong class="detail-visibility">--</strong></div>
+          <div class="detail-card"><span>Pressure</span><strong class="detail-pressure">--</strong></div>
+          <div class="detail-card"><span>Cloud Cover</span><strong class="detail-cloud">--</strong></div>
+          <div class="detail-card"><span>UV</span><strong class="detail-uv">--</strong></div>
+          <div class="detail-card"><span>Dew Point</span><strong class="detail-dew">--</strong></div>
+          <div class="detail-card"><span>Sunrise</span><strong class="detail-sunrise">--</strong></div>
+          <div class="detail-card"><span>Sunset</span><strong class="detail-sunset">--</strong></div>
+          <div class="detail-card"><span>Air Quality</span><strong class="detail-air">--</strong></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="dashboard-card pokemon-guide" aria-labelledby="guide-title">
+      <div class="guide-heading">
+        <div>
+          <p class="section-kicker">Pokémon Weather Guide</p>
+          <h2 id="guide-title">Collectible weather companions</h2>
+        </div>
+        <p>Every forecast condition maps to a Pokémon partner.</p>
+      </div>
+      <div class="types-grid" id="pokemon-guide-grid"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-mark" aria-hidden="true"></div>
+    <p>Built with <span class="heart-icon" aria-label="love">♥</span> by Aman Kumar</p>
+    <p>Powered by <a href="https://www.weatherapi.com/" target="_blank" rel="noopener noreferrer">WeatherAPI</a></p>
+    <p>Pokémon and related characters are © Nintendo / Game Freak.</p>
+    <nav class="footer-links" aria-label="Social links">
+      <a href="https://github.com/amanbotx2-fr" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.9a3.4 3.4 0 0 0-.9-2.6c3-.3 6.1-1.5 6.1-6.7a5.2 5.2 0 0 0-1.4-3.6 4.8 4.8 0 0 0-.1-3.6s-1.1-.3-3.7 1.4a12.7 12.7 0 0 0-6.7 0C6.7.3 5.6.6 5.6.6a4.8 4.8 0 0 0-.1 3.6A5.2 5.2 0 0 0 4.1 8c0 5.2 3.1 6.4 6.1 6.7a3.4 3.4 0 0 0-.9 2.6V22"></path>
+        </svg>
+      </a>
+      <a href="https://www.linkedin.com/in/amankr06" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6Z"></path>
+          <path d="M2 9h4v12H2z"></path>
+          <circle cx="4" cy="4" r="2"></circle>
+        </svg>
+      </a>
+      <a href="https://instagram.com/amxn.ae06" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="2" y="2" width="20" height="20" rx="5"></rect>
+          <circle cx="12" cy="12" r="4"></circle>
+          <circle cx="17.5" cy="6.5" r="1"></circle>
+        </svg>
+      </a>
+    </nav>
+  </footer>
+
+  <div class="modal-backdrop" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
+    <section class="settings-card">
+      <div class="modal-heading">
+        <div>
+          <p class="section-kicker">Dashboard Preferences</p>
+          <h2 id="settings-title">Settings</h2>
+        </div>
+        <button class="icon-button" id="close-settings-btn" type="button" aria-label="Close settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
       </div>
 
-      <div class="pokemon-image">
-        <img id="pokemon-img" src="" alt="Pokémon will appear based on weather" />
-      </div>
+      <fieldset class="setting-group">
+        <legend>Temperature Unit</legend>
+        <label><input type="radio" name="unit" value="c"> °C</label>
+        <label><input type="radio" name="unit" value="f"> °F</label>
+      </fieldset>
 
-      <div class="forecast"></div>
-    </div>
+      <fieldset class="setting-group">
+        <legend>Animations</legend>
+        <label><input type="radio" name="animations" value="on"> On</label>
+        <label><input type="radio" name="animations" value="off"> Off</label>
+      </fieldset>
 
-    <div class="pokemon-guide">
-      <h2>Pokémon Type Guide</h2>
-      <div class="types-grid">
-        <div class="type">
-          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/charmander.gif" alt="Charmander" />
-          <p>🟠 Sunny / Clear</p>
-        </div>
-        <div class="type">
-          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/pidgey.gif" alt="Pidgey" />
-          <p>☁️ Cloudy</p>
-        </div>
-        <div class="type">
-          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/squirtle.gif" alt="Squirtle" />
-          <p>🌧️ Rain / Drizzle</p>
-        </div>
-        <div class="type">
-          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/pikachu.gif" alt="Pikachu" />
-          <p>⚡ Thunderstorm</p>
-        </div>
-        <div class="type">
-          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/snorunt.gif" alt="Snorunt" />
-          <p>❄️ Snow / Ice</p>
-        </div>
-        <div class="type">
-          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/gastly.gif" alt="Gastly" />
-          <p>🌫️ Mist / Fog</p>
-        </div>
-        <div class="type">
-          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/fearow.gif" alt="Fearow" />
-          <p>💨 Windy</p>
-        </div>
-        <div class="type">
-          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/sandshrew.gif" alt="Sandshrew" />
-          <p>🌪️ Dust / Haze / Smoke</p>
-        </div>
-        <div class="type">
-          <img src="https://img.pokemondb.net/sprites/black-white/anim/normal/meowth.gif" alt="Meowth" />
-          <p>✨ Other</p>
-        </div>
-      </div>
-    </div>
+      <fieldset class="setting-group">
+        <legend>Theme</legend>
+        <label><input type="radio" name="theme" value="auto"> Auto</label>
+        <label><input type="radio" name="theme" value="light"> Light</label>
+        <label><input type="radio" name="theme" value="dark"> Dark</label>
+        <label><input type="radio" name="theme" value="dynamic"> Dynamic Weather</label>
+      </fieldset>
+    </section>
   </div>
-<footer class="footer">
-  <p>Made with ❤️ by Aman Kumar</p>
-  <p>
-    <a href="https://github.com/amanbotx2-fr" target="_blank">GitHub</a> •
-    <a href="https://www.linkedin.com/in/amankr06" target="_blank">LinkedIn</a> •
-    <a href="https://x.com/amankumar_2006" target="_blank">X</a> •
-    <a href="https://instagram.com/amxn.ae06" target="_blank">Instagram</a>
-  </p>
-</footer>
 
+  <script src="pokemonDatabase.js"></script>
+  <script src="pokemonMessages.js"></script>
+  <script src="pokemonEngine.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,28 +1,163 @@
-# 🌦️ Pokémon Weather App
+# Pokemon Weather Dashboard
 
-A simple weather web app that shows the current weather of Indian cities and displays a matching Pokémon based on the weather condition. Built using HTML, CSS, and JavaScript.
+A premium single-page weather dashboard that pairs each city with a contextual Pokemon companion. The app combines live WeatherAPI data, a data-driven Pokemon encounter engine, persistent local preferences, and a polished responsive dashboard built with Vanilla HTML, CSS, JavaScript, and Vercel Serverless Functions.
 
-## 🔍 Features
+## Features
 
-- Search for any city
-- Shows temperature, humidity, and wind speed
-- Pokémon changes based on weather (e.g. Charmander for sunny, Squirtle for rainy)
-- Fully responsive design
-- Uses data from [WeatherAPI.com](https://www.weatherapi.com/)
+- City weather search with WeatherAPI-powered autocomplete
+- Keyboard and mouse suggestion selection
+- Current-location weather using browser geolocation
+- Current conditions, weather details, air quality, sunrise, and sunset
+- Forecast cards with weather icons and matching Pokemon
+- Pokemon Engine V3 with deterministic city/weather/date encounters
+- Pokemon companion card with type badges, ability, height, weight, description, facts, and trainer tips
+- Collectible Pokemon weather guide
+- Favorites and recent searches persisted with localStorage
+- Settings for temperature unit, animation preference, and theme
+- Dynamic weather themes for sunny, rainy, cloudy, misty, snowy, and thunderstorm conditions
+- Responsive dashboard layout for desktop, tablet, and mobile
 
-## 🚀 Live Demo
+## Tech Stack
 
-👉 [View Live](https://amanbotx2-fr.github.io/Pokemon-Weather-app/)
+- HTML5
+- CSS3
+- Vanilla JavaScript
+- Vercel Serverless Functions
+- WeatherAPI
+- PokemonDB sprite assets
+- Vercel hosting
 
-## 📁 Tech Stack
+No React, Vue, Angular, Tailwind, Bootstrap, jQuery, or client-side build framework is used.
 
-- HTML
-- CSS
-- JavaScript
+## Architecture
 
-## 👤 Author
+The browser never calls WeatherAPI directly. It calls same-origin Vercel API routes:
 
-**Aman Kumar**  
-[GitHub](https://github.com/amanbotx2-fr)  
-[Instagram](https://www.instagram.com/amxn.ae06)  
-[LinkedIn](https://www.linkedin.com/in/amankr06)  
+- `/api/search`
+- `/api/current`
+- `/api/forecast`
+
+Those routes proxy WeatherAPI using the server-side environment variable:
+
+```text
+WEATHER_API_KEY=...
+```
+
+The key is read only from `process.env.WEATHER_API_KEY` inside Vercel functions and is never exposed to client JavaScript or DevTools request URLs.
+
+## Pokemon Engine
+
+The Pokemon Engine V3 lives in:
+
+- `pokemonDatabase.js`
+- `pokemonEngine.js`
+- `pokemonMessages.js`
+
+Instead of mapping one weather string to one Pokemon, the engine scores the Pokemon database against live weather context:
+
+- Weather condition
+- Temperature
+- Humidity
+- Wind
+- UV
+- Visibility
+- Air quality
+- Time of day
+- City, region, and inferred climate tags
+- Pokemon rarity
+
+The selection is deterministic for the same city, weather, date, and temperature bucket, so a city feels like it has a stable daily partner while still allowing discovery over time.
+
+## Environment Variables
+
+Create the environment variable locally and in Vercel:
+
+```text
+WEATHER_API_KEY=...
+```
+
+For local development with Vercel CLI, put the variable in a root `.env` file:
+
+```text
+WEATHER_API_KEY=your_weatherapi_key_here
+```
+
+The root `.env` file is ignored by Git. Production deployments should define the same variable in the Vercel project settings.
+
+## Run Locally
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+This project has no application dependencies. `npm install` is safe to run, but it is only needed if you add dependencies later.
+
+Start Vercel's local development server directly from the CLI:
+
+```bash
+npx vercel dev
+```
+
+Open the local URL printed by Vercel, usually:
+
+```text
+http://localhost:3000
+```
+
+## Deploy to Vercel
+
+Set `WEATHER_API_KEY` in the Vercel project settings before deploying.
+
+Build with the Vercel CLI:
+
+```bash
+vercel build
+```
+
+Deploy with the Vercel CLI:
+
+```bash
+vercel deploy
+```
+
+## Folder Structure
+
+```text
+Pokemon-Weather-app/
+├── api/
+│   ├── current.js
+│   ├── forecast.js
+│   └── search.js
+├── lib/
+│   └── weatherProxy.js
+├── index.html
+├── style.css
+├── script.js
+├── pokemonDatabase.js
+├── pokemonEngine.js
+├── pokemonMessages.js
+├── package.json
+├── README.md
+├── DESIGN.md
+└── favicon.ico
+```
+
+## Security
+
+- Do not commit real WeatherAPI keys.
+- Do not expose keys through browser JavaScript.
+- Keep local environment files out of Git.
+- Confirm API requests in DevTools use `/api/search`, `/api/current`, and `/api/forecast`, not `api.weatherapi.com`.
+
+## Credits
+
+- Weather data from [WeatherAPI](https://www.weatherapi.com/)
+- Pokemon sprites from [PokemonDB](https://pokemondb.net/)
+- Pokemon and related characters are owned by Nintendo, Game Freak, and The Pokemon Company
+- Built by Aman Kumar
+
+## License
+
+Add a project license before publishing as a formal open-source release. If no license is added, default copyright restrictions apply.
