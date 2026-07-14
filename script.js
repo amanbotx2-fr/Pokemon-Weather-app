@@ -8,126 +8,6 @@ const STORAGE_KEYS = {
   recent: "pokemonWeather.recent.v2"
 };
 
-const POKEMON_RULES = [
-  {
-    id: "charmander",
-    name: "Charmander",
-    weather: "Sunny / Clear",
-    type: ["Fire"],
-    keywords: ["sun", "clear"],
-    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/charmander.gif",
-    height: "0.6 m",
-    weight: "8.5 kg",
-    ability: "Blaze",
-    theme: "sunny",
-    relation: "Charmander thrives in warm sunlight and feels strongest under clear skies."
-  },
-  {
-    id: "pidgey",
-    name: "Pidgey",
-    weather: "Cloudy",
-    type: ["Normal", "Flying"],
-    keywords: ["cloud"],
-    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/pidgey.gif",
-    height: "0.3 m",
-    weight: "1.8 kg",
-    ability: "Keen Eye",
-    theme: "cloudy",
-    relation: "Pidgey enjoys breezy skies and often glides through partly cloudy weather."
-  },
-  {
-    id: "squirtle",
-    name: "Squirtle",
-    weather: "Rain / Drizzle",
-    type: ["Water"],
-    keywords: ["rain", "drizzle"],
-    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/squirtle.gif",
-    height: "0.5 m",
-    weight: "9.0 kg",
-    ability: "Torrent",
-    theme: "rain",
-    relation: "Squirtle is happiest when showers roll in and the air turns cool."
-  },
-  {
-    id: "pikachu",
-    name: "Pikachu",
-    weather: "Thunderstorm",
-    type: ["Electric"],
-    keywords: ["thunder", "storm"],
-    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/pikachu.gif",
-    height: "0.4 m",
-    weight: "6.0 kg",
-    ability: "Static",
-    theme: "thunder",
-    relation: "Pikachu channels stormy skies into a bright electric burst of energy."
-  },
-  {
-    id: "snorunt",
-    name: "Snorunt",
-    weather: "Snow / Ice",
-    type: ["Ice"],
-    keywords: ["snow", "ice"],
-    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/snorunt.gif",
-    height: "0.7 m",
-    weight: "16.8 kg",
-    ability: "Inner Focus",
-    theme: "snow",
-    relation: "Snorunt feels right at home when cold air and icy weather arrive."
-  },
-  {
-    id: "gastly",
-    name: "Gastly",
-    weather: "Mist / Fog",
-    type: ["Ghost", "Poison"],
-    keywords: ["mist", "fog"],
-    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/gastly.gif",
-    height: "1.3 m",
-    weight: "0.1 kg",
-    ability: "Levitate",
-    theme: "mist",
-    relation: "Gastly drifts through mist and fog when visibility fades."
-  },
-  {
-    id: "fearow",
-    name: "Fearow",
-    weather: "Windy",
-    type: ["Normal", "Flying"],
-    keywords: ["wind"],
-    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/fearow.gif",
-    height: "1.2 m",
-    weight: "38.0 kg",
-    ability: "Keen Eye",
-    theme: "cloudy",
-    relation: "Fearow cuts through gusty weather and rides strong winds with ease."
-  },
-  {
-    id: "sandshrew",
-    name: "Sandshrew",
-    weather: "Dust / Haze / Smoke",
-    type: ["Ground"],
-    keywords: ["haze", "smoke", "dust"],
-    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/sandshrew.gif",
-    height: "0.6 m",
-    weight: "12.0 kg",
-    ability: "Sand Veil",
-    theme: "sunny",
-    relation: "Sandshrew stays steady when dust, haze, or dry air moves through."
-  },
-  {
-    id: "meowth",
-    name: "Meowth",
-    weather: "Other",
-    type: ["Normal"],
-    keywords: [],
-    sprite: "https://img.pokemondb.net/sprites/black-white/anim/normal/meowth.gif",
-    height: "0.4 m",
-    weight: "4.2 kg",
-    ability: "Pickup",
-    theme: "idle",
-    relation: "Meowth is flexible and ready for unusual weather patterns."
-  }
-];
-
 const dom = {};
 const state = {
   suggestions: [],
@@ -141,6 +21,7 @@ const state = {
   activeLocation: null,
   activeWeather: null,
   displayedTemp: null,
+  pokemonImageToken: 0,
   settings: readStorage(STORAGE_KEYS.settings, {
     unit: "c",
     animations: "on",
@@ -467,7 +348,12 @@ function renderWeather(data) {
   const today = data.forecast?.forecastday?.[0] || {};
   const astro = today.astro || {};
   const condition = current.condition?.text || "Unknown";
-  const pokemon = getPokemonForCondition(condition);
+  const pokemon = selectWeatherPokemon({
+    location,
+    current,
+    forecastDay: today,
+    date: location.localtime
+  });
   const unit = state.settings.unit;
 
   applyWeatherTheme(pokemon.theme);
@@ -506,26 +392,26 @@ function renderWeather(data) {
 
 function renderPokemonPartner(pokemon, condition, cityName) {
   const image = document.getElementById("pokemon-img");
-  image.src = pokemon.sprite;
-  image.alt = `${pokemon.name}, matched with ${condition}`;
-  image.loading = "eager";
+  const imageSrc = pokemon.image || pokemon.sprite;
+  updatePokemonImage(image, imageSrc, `${pokemon.name}, matched with ${condition}`);
 
   setText(".partner-name", pokemon.name);
-  setText(".partner-description", `${pokemon.name} is matched with ${condition.toLowerCase()} in ${cityName || "this city"}.`);
-  setText(".partner-weather", pokemon.relation);
+  setText(".partner-description", formatPokemonDescription(pokemon));
+  setText(".partner-weather", pokemon.encounterMessage || pokemon.relation);
   setText(".partner-height", pokemon.height);
   setText(".partner-weight", pokemon.weight);
   setText(".partner-ability", pokemon.ability);
 
   const badges = document.querySelector(".partner-badges");
-  badges.replaceChildren(...pokemon.type.map((type, index) => {
+  const types = pokemon.types || pokemon.type || [];
+  badges.replaceChildren(...types.map((type, index) => {
     const badge = document.createElement("span");
     badge.className = `badge ${index === 0 ? "badge-neutral" : "badge-accent"}`;
     badge.textContent = type;
     return badge;
   }));
 
-  setText(".trainer-copy", pokemon.relation);
+  setText(".trainer-copy", formatTrainerTip(pokemon));
 }
 
 function renderForecast(forecastDays) {
@@ -545,7 +431,7 @@ function renderForecast(forecastDays) {
   days.forEach((forecastDay, index) => {
     const day = forecastDay.day || {};
     const condition = day.condition?.text || "Unknown";
-    const pokemon = getPokemonForCondition(condition);
+    const pokemon = selectForecastPokemon(forecastDay);
     const card = document.createElement("article");
     card.className = `day ${index === 0 ? "active" : ""}`;
     card.innerHTML = `
@@ -553,22 +439,23 @@ function renderForecast(forecastDays) {
       <img src="https:${escapeHtml(day.condition?.icon || "")}" alt="${escapeHtml(condition)}" loading="lazy">
       <h3>${escapeHtml(formatTempRange(day))}</h3>
       <small>${escapeHtml(condition)}</small>
-      <img class="forecast-pokemon" src="${escapeHtml(pokemon.sprite)}" alt="${escapeHtml(pokemon.name)}" loading="lazy">
+      <img class="forecast-pokemon" src="${escapeHtml(pokemon.image || pokemon.sprite)}" alt="${escapeHtml(pokemon.name)}" loading="lazy">
     `;
     dom.forecastList.appendChild(card);
   });
 }
 
 function renderPokemonGuide() {
-  dom.guideGrid.replaceChildren(...POKEMON_RULES.map((pokemon) => {
+  const guidePokemon = PokemonWeatherEngine.getGuidePokemon();
+  dom.guideGrid.replaceChildren(...guidePokemon.map((pokemon) => {
     const card = document.createElement("article");
     card.className = "type";
     card.innerHTML = `
-      <img src="${escapeHtml(pokemon.sprite)}" alt="${escapeHtml(pokemon.name)}" loading="lazy" />
+      <img src="${escapeHtml(pokemon.image || pokemon.sprite)}" alt="${escapeHtml(pokemon.name)}" loading="lazy" />
       <div>
         <h3>${escapeHtml(pokemon.name)}</h3>
-        <p>${escapeHtml(pokemon.weather)}</p>
-        <span>${escapeHtml(pokemon.type.join(" / "))}</span>
+        <p>${escapeHtml(pokemon.weatherLabel || pokemon.weather)}</p>
+        <span>${escapeHtml((pokemon.types || pokemon.type || []).join(" / "))}</span>
       </div>
     `;
     return card;
@@ -869,9 +756,74 @@ function addButtonRipple(event) {
   window.setTimeout(() => ripple.remove(), 550);
 }
 
-function getPokemonForCondition(condition = "") {
-  const text = condition.toLowerCase();
-  return POKEMON_RULES.find((rule) => rule.keywords.some((keyword) => text.includes(keyword))) || POKEMON_RULES[POKEMON_RULES.length - 1];
+function selectWeatherPokemon(context) {
+  return PokemonWeatherEngine.selectPokemon(context);
+}
+
+function selectForecastPokemon(forecastDay) {
+  return PokemonWeatherEngine.selectForecastPokemon({
+    forecastDay,
+    location: state.activeWeather?.location || state.activeLocation
+  });
+}
+
+function updatePokemonImage(image, src, alt) {
+  if (!image || !src) return;
+
+  const token = state.pokemonImageToken + 1;
+  state.pokemonImageToken = token;
+  image.alt = alt;
+  image.loading = "eager";
+
+  const sameImage = image.getAttribute("src") === src;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const shouldAnimate = !sameImage && state.settings.animations !== "off" && image.animate && !reducedMotion;
+
+  if (!shouldAnimate) {
+    image.src = src;
+    return;
+  }
+
+  const exitAnimation = image.animate([
+    { opacity: 1, transform: "scale(1)" },
+    { opacity: 0, transform: "scale(0.94)" }
+  ], {
+    duration: 130,
+    easing: "ease",
+    fill: "forwards"
+  });
+
+  exitAnimation.finished
+    .catch(() => {})
+    .then(() => {
+      exitAnimation.cancel();
+      if (token !== state.pokemonImageToken) return null;
+      image.src = src;
+      return typeof image.decode === "function" ? image.decode().catch(() => null) : null;
+    })
+    .then(() => {
+      if (token !== state.pokemonImageToken) return;
+      image.animate([
+        { opacity: 0, transform: "translateY(8px) scale(0.96)" },
+        { opacity: 1, transform: "translateY(0) scale(1)" }
+      ], {
+        duration: 240,
+        easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        fill: "none"
+      });
+    });
+}
+
+function formatPokemonDescription(pokemon) {
+  return [pokemon.description, pokemon.funFact ? `Fact: ${pokemon.funFact}` : ""].filter(Boolean).join(" ");
+}
+
+function formatTrainerTip(pokemon) {
+  return [
+    pokemon.trainerTip,
+    pokemon.bestWeather ? `Best weather: ${pokemon.bestWeather}.` : "",
+    pokemon.weakness ? `Weakness: ${pokemon.weakness}.` : ""
+  ].filter(Boolean).join(" ");
 }
 
 function normalizeLocationTarget(place) {
