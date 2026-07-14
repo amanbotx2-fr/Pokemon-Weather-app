@@ -4,6 +4,31 @@ const API_ROUTES = {
   forecast: "/api/forecast"
 };
 const REQUEST_TIMEOUT_MS = 9000;
+const COUNTRY_CODE_BY_NAME = {
+  australia: "AU",
+  brazil: "BR",
+  canada: "CA",
+  china: "CN",
+  france: "FR",
+  germany: "DE",
+  india: "IN",
+  indonesia: "ID",
+  italy: "IT",
+  japan: "JP",
+  malaysia: "MY",
+  mexico: "MX",
+  netherlands: "NL",
+  pakistan: "PK",
+  philippines: "PH",
+  russia: "RU",
+  singapore: "SG",
+  spain: "ES",
+  "united arab emirates": "AE",
+  "united kingdom": "GB",
+  "united states": "US",
+  "united states of america": "US",
+  usa: "US"
+};
 const STORAGE_KEYS = {
   settings: "pokemonWeather.settings.v2",
   favorites: "pokemonWeather.favorites.v2",
@@ -160,9 +185,9 @@ async function handleAutocompleteInput() {
   openSuggestions();
 
   try {
-    const results = await fetchWeatherApi("search", { q: query }, state.suggestionController.signal);
+    const results = await fetchAutocompleteSuggestions(query, state.suggestionController.signal);
     if (dom.input.value.trim() !== query) return;
-    state.suggestions = Array.isArray(results) ? results.slice(0, 8) : [];
+    state.suggestions = Array.isArray(results) ? rankLocationSuggestions(results, query).slice(0, 8) : [];
     renderSuggestions(state.suggestions);
   } catch (error) {
     if (error.name === "AbortError") return;
@@ -188,16 +213,30 @@ function renderSuggestions(suggestions) {
     item.role = "option";
     item.dataset.index = String(index);
     item.setAttribute("aria-selected", "false");
+    const label = formatSuggestionLabel(place);
     item.innerHTML = `
-      <button type="button">
-        <strong>${escapeHtml(place.name)}</strong>
-        <span>${escapeHtml(formatRegion(place))}</span>
+      <button type="button" aria-label="${escapeHtml(label)}">
+        <strong>${escapeHtml(label)}</strong>
       </button>
     `;
     item.addEventListener("mousedown", (event) => event.preventDefault());
     item.addEventListener("click", () => selectSuggestion(index));
     dom.suggestionsList.appendChild(item);
   });
+}
+
+async function fetchAutocompleteSuggestions(query, signal) {
+  const results = await fetchWeatherApi("search", { q: query }, signal);
+  if (!Array.isArray(results) || !shouldFetchIndianSupplement(results, query)) return results;
+
+  try {
+    const indiaResults = await fetchWeatherApi("search", { q: `${query} India` }, signal);
+    if (!Array.isArray(indiaResults)) return results;
+    return mergeLocationSuggestions(results, indiaResults.filter(isIndianLocation));
+  } catch (error) {
+    if (error.name === "AbortError") throw error;
+    return results;
+  }
 }
 
 function handleSearchKeydown(event) {
@@ -909,8 +948,83 @@ function getTargetKey(target) {
   return (target?.label || target?.name || "").toLowerCase();
 }
 
+function rankLocationSuggestions(results, query) {
+  const normalizedQuery = normalizeSuggestionText(query);
+
+  return results
+    .map((place, index) => ({
+      place,
+      index,
+      rank: getSuggestionRank(place, normalizedQuery)
+    }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .map((item) => item.place);
+}
+
+function shouldFetchIndianSupplement(results, query) {
+  const normalizedQuery = normalizeSuggestionText(query);
+  return normalizedQuery.length >= 2 && !normalizedQuery.includes("india") && !results.some(isIndianLocation);
+}
+
+function mergeLocationSuggestions(primaryResults, supplementalResults) {
+  const seen = new Set();
+  return [...primaryResults, ...supplementalResults].filter((place) => {
+    const key = getSuggestionKey(place);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function getSuggestionKey(place) {
+  if (place.id) return `id:${place.id}`;
+  return [place.name, place.region, place.country].map(normalizeSuggestionText).join("|");
+}
+
+function isIndianLocation(place) {
+  return normalizeSuggestionText(place.country) === "india";
+}
+
+function getSuggestionRank(place, normalizedQuery) {
+  const city = normalizeSuggestionText(place.name);
+
+  if (isIndianLocation(place)) return 0;
+  if (!city || !normalizedQuery) return 3;
+  if (city === normalizedQuery) return 1;
+  if (city.includes(normalizedQuery) || normalizedQuery.includes(city)) return 2;
+  return 3;
+}
+
+function normalizeSuggestionText(value = "") {
+  return String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+function formatSuggestionLabel(place) {
+  const parts = [place.name, place.region, formatCountryName(place.country)].filter(Boolean);
+  const flag = getCountryFlag(place.country);
+  return `${parts.join(", ")}${flag ? ` ${flag}` : ""}`;
+}
+
 function formatRegion(place) {
   return [place.region, place.country].filter(Boolean).join(", ") || "WeatherAPI location";
+}
+
+function formatCountryName(country = "") {
+  if (country === "United States of America" || country === "United States") return "USA";
+  return country;
+}
+
+function getCountryFlag(country = "") {
+  const code = COUNTRY_CODE_BY_NAME[normalizeSuggestionText(country)];
+  if (!code) return "";
+  return [...code.toUpperCase()]
+    .map((letter) => String.fromCodePoint(127397 + letter.charCodeAt(0)))
+    .join("");
 }
 
 function formatLocalTime(localtime) {
