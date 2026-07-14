@@ -76,7 +76,13 @@ Create the environment variable locally and in Vercel:
 WEATHER_API_KEY=...
 ```
 
-For local development with Vercel CLI, use a local environment file such as `.env.local`. Environment files are ignored by Git.
+For local development with Vercel CLI, put the variable in a root `.env` file:
+
+```text
+WEATHER_API_KEY=your_weatherapi_key_here
+```
+
+The root `.env` file is ignored by Git. Production deployments should define the same variable in the Vercel project settings.
 
 ## Run Locally
 
@@ -86,10 +92,12 @@ Install dependencies:
 npm install
 ```
 
-Start Vercel's local development server:
+This project has no application dependencies. `npm install` is safe to run, but it is only needed if you add dependencies later.
+
+Start Vercel's local development server directly from the CLI:
 
 ```bash
-vercel dev
+npx vercel dev
 ```
 
 Open the local URL printed by Vercel, usually:
@@ -102,16 +110,16 @@ http://localhost:3000
 
 Set `WEATHER_API_KEY` in the Vercel project settings before deploying.
 
-Deploy:
+Build with the Vercel CLI:
+
+```bash
+vercel build
+```
+
+Deploy with the Vercel CLI:
 
 ```bash
 vercel deploy
-```
-
-For production:
-
-```bash
-vercel deploy --prod
 ```
 
 ## Folder Structure
