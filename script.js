@@ -1,6 +1,8 @@
-const apiKey = "53327aac67b8417bbb1120954252506";
-
-const API_BASE = "https://api.weatherapi.com/v1";
+const API_ROUTES = {
+  search: "/api/search",
+  current: "/api/current",
+  forecast: "/api/forecast"
+};
 const REQUEST_TIMEOUT_MS = 9000;
 const STORAGE_KEYS = {
   settings: "pokemonWeather.settings.v2",
@@ -130,6 +132,14 @@ function bindEvents() {
 }
 
 async function handleAutocompleteInput() {
+  if (state.loading) {
+    state.suggestions = [];
+    dom.suggestionsList.replaceChildren();
+    dom.input.setAttribute("aria-activedescendant", "");
+    closeSuggestions();
+    return;
+  }
+
   const query = dom.input.value.trim();
   state.highlightedSuggestion = -1;
 
@@ -142,12 +152,16 @@ async function handleAutocompleteInput() {
   }
 
   if (state.suggestionController) state.suggestionController.abort();
+  state.suggestions = [];
+  dom.suggestionsList.replaceChildren();
+  dom.input.setAttribute("aria-activedescendant", "");
   state.suggestionController = new AbortController();
   dom.suggestionsStatus.textContent = "Searching cities...";
   openSuggestions();
 
   try {
-    const results = await fetchWeatherApi("/search.json", { q: query }, state.suggestionController.signal);
+    const results = await fetchWeatherApi("search", { q: query }, state.suggestionController.signal);
+    if (dom.input.value.trim() !== query) return;
     state.suggestions = Array.isArray(results) ? results.slice(0, 8) : [];
     renderSuggestions(state.suggestions);
   } catch (error) {
@@ -251,7 +265,7 @@ async function searchWeather(target, options = {}) {
   hideFeedback();
 
   try {
-    const data = await fetchWeatherApi("/forecast.json", {
+    const data = await fetchWeatherApi("forecast", {
       q: getWeatherQuery(target),
       days: "5",
       aqi: "yes",
@@ -277,9 +291,16 @@ async function searchWeather(target, options = {}) {
   }
 }
 
-async function fetchWeatherApi(path, params, externalSignal) {
-  const url = new URL(`${API_BASE}${path}`);
-  url.search = new URLSearchParams({ key: apiKey, ...params }).toString();
+async function fetchWeatherApi(endpoint, params, externalSignal) {
+  const route = API_ROUTES[endpoint];
+  if (!route) {
+    const routeError = new Error(`Unknown weather endpoint: ${endpoint}`);
+    routeError.code = "unknown-endpoint";
+    throw routeError;
+  }
+
+  const query = new URLSearchParams(params).toString();
+  const url = query ? `${route}?${query}` : route;
 
   const controller = new AbortController();
   let timedOut = false;
@@ -328,6 +349,12 @@ function abortWeatherRequest() {
 
 function handleWeatherError(error, target) {
   const queryLabel = typeof target === "string" ? target : target?.label || "that location";
+
+  if (error.status === 401 || error.code === 2006 || error.code === "missing-env") {
+    showFeedback("network", "Weather service setup issue.", "Weather is not configured on the server. Add WEATHER_API_KEY in Vercel and redeploy.");
+    setWeatherControlsEnabled(false);
+    return;
+  }
 
   if (error.code === "timeout") {
     showFeedback("network", "Connection lost.", "The weather request took too long. Check your connection and try again.", { retry: true });
@@ -385,12 +412,12 @@ function renderWeather(data) {
   setText(".detail-air", formatAirQuality(current.air_quality));
 
   renderAirQuality(current.air_quality);
-  renderPokemonPartner(pokemon, condition, location.name);
+  renderPokemonPartner(pokemon, condition);
   renderForecast(data.forecast?.forecastday || []);
   updateFavoriteButton();
 }
 
-function renderPokemonPartner(pokemon, condition, cityName) {
+function renderPokemonPartner(pokemon, condition) {
   const image = document.getElementById("pokemon-img");
   const imageSrc = pokemon.image || pokemon.sprite;
   updatePokemonImage(image, imageSrc, `${pokemon.name}, matched with ${condition}`);
@@ -667,6 +694,10 @@ function openSuggestions() {
 }
 
 function closeSuggestions() {
+  if (state.suggestionController) {
+    state.suggestionController.abort();
+    state.suggestionController = null;
+  }
   dom.suggestionsPanel.classList.remove("is-open");
   dom.suggestionsPanel.hidden = true;
   dom.input.setAttribute("aria-expanded", "false");
@@ -703,6 +734,12 @@ function setLoading(isLoading, label = "Loading weather...") {
   dom.searchBtn.setAttribute("aria-label", isLoading ? label : "Search weather");
   dom.weatherCard.setAttribute("aria-busy", isLoading ? "true" : "false");
   dom.forecastPanel.setAttribute("aria-busy", isLoading ? "true" : "false");
+}
+
+function setWeatherControlsEnabled(isEnabled) {
+  dom.searchBtn.disabled = !isEnabled;
+  dom.locationBtn.disabled = !isEnabled;
+  dom.input.disabled = !isEnabled;
 }
 
 function applyWeatherTheme(theme) {

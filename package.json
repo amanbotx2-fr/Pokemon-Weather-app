@@ -1,0 +1,17 @@
+{
+  "name": "pokemon-weather-dashboard",
+  "version": "1.0.0",
+  "description": "A premium Vanilla JavaScript Pokemon weather dashboard deployed on Vercel.",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "vercel build --prod",
+    "deploy": "vercel deploy --prod"
+  },
+  "devDependencies": {
+    "vercel": "latest"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

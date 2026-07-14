@@ -41,13 +41,7 @@ It should become the centerpiece of the application.
 
 # Design References
 
-The primary design inspiration comes from the dashboard references included in this repository.
-
-Reference Image:
-
-```
-image.png
-```
+The primary design inspiration comes from premium weather and dashboard references.
 
 Primary inspirations:
 
@@ -571,15 +565,9 @@ Use the existing Pokémon sprites from the current project.
 
 Replace them with higher-quality artwork only if licensing and consistency allow.
 
-Reference image
+External dashboard references are inspiration only.
 
-```
-image.png
-```
-
-must only be used for inspiration.
-
-Never replicate it.
+Never replicate them.
 
 ---
 
