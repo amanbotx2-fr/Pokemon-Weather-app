@@ -1492,23 +1492,230 @@ body[data-weather="snow"] .sun-core {
   }
 }
 
-@media (max-width: 1280px) {
-  .app-header,
-  .dashboard-grid,
-  .content-grid {
-    grid-template-columns: 1fr;
+@media (min-width: 1200px) and (max-width: 1359px) {
+  .app-shell {
+    padding: clamp(18px, 1.8vw, 24px);
   }
 
   .app-header {
-    gap: 16px;
+    grid-template-columns: minmax(170px, 0.65fr) minmax(320px, 1.45fr) auto;
+    gap: 18px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.08fr) minmax(196px, 0.42fr);
+    gap: 12px;
+  }
+
+  .weather-overview,
+  .pokemon-partner {
+    min-height: 438px;
+    padding: 24px;
+  }
+
+  .weather-content {
+    max-width: 57%;
+  }
+
+  .weather-illustration {
+    width: clamp(184px, 15vw, 214px);
+    height: clamp(184px, 15vw, 214px);
+    inset: 34px 10px auto auto;
+  }
+
+  .main-temp h1 {
+    font-size: clamp(3.45rem, 4vw, 4.1rem);
+  }
+
+  .location {
+    font-size: clamp(1.72rem, 2vw, 2rem);
+  }
+
+  .metric-grid {
+    gap: 10px;
+  }
+
+  .metric-card {
+    padding: 12px;
+  }
+
+  .pokemon-partner {
+    grid-template-columns: minmax(154px, 0.7fr) minmax(150px, 1fr);
+    gap: 14px;
+  }
+
+  .partner-name {
+    font-size: clamp(2.25rem, 2.7vw, 2.8rem);
+  }
+
+  .partner-description {
+    margin-top: 20px;
+  }
+
+  #pokemon-img {
+    width: min(100%, 208px);
+    min-width: 132px;
+  }
+
+  .side-widgets,
+  .widget {
+    min-width: 0;
+  }
+
+  .widget {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px;
+  }
+
+  .air-score {
+    width: 88px;
+    height: 88px;
+  }
+
+  .content-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.42fr);
+  }
+
+  .types-grid {
+    grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
+  }
+}
+
+@media (min-width: 1360px) and (max-width: 1535px) {
+  .app-shell {
+    padding-inline: clamp(20px, 2vw, 28px);
+  }
+
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1.16fr) minmax(260px, 0.5fr);
+    gap: 14px;
+  }
+
+  .side-widgets,
+  .widget {
+    min-width: 0;
+  }
+
+  .widget {
+    gap: 14px;
+    padding: 24px;
+  }
+
+  .air-score {
+    width: 94px;
+    height: 94px;
+  }
+}
+
+@media (max-width: 1199px) {
+  .app-shell {
+    padding: clamp(18px, 3vw, 28px);
+  }
+
+  .app-header {
+    position: relative;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: clamp(14px, 2vw, 20px);
+  }
+
+  .search-bar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
   }
 
   .header-actions {
-    justify-content: flex-start;
+    justify-content: flex-end;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(14px, 2vw, 18px);
+  }
+
+  .weather-overview,
+  .pokemon-partner {
+    min-height: 100%;
+    padding: clamp(22px, 2.5vw, 28px);
+  }
+
+  .weather-content {
+    max-width: none;
+    gap: 22px;
+  }
+
+  .weather-illustration {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: clamp(168px, 20vw, 210px);
+    transform: none;
+  }
+
+  .main-temp h1 {
+    font-size: clamp(3.1rem, 5.5vw, 3.9rem);
+  }
+
+  .location {
+    font-size: clamp(1.55rem, 3vw, 1.9rem);
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pokemon-partner {
+    grid-template-columns: 1fr;
+  }
+
+  .partner-name {
+    font-size: clamp(2.2rem, 4vw, 2.7rem);
+  }
+
+  .partner-description,
+  .partner-weather {
+    max-width: 52ch;
+  }
+
+  .pokemon-stage {
+    min-height: clamp(190px, 24vw, 250px);
+  }
+
+  .partner-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .side-widgets {
+    grid-column: 1 / -1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .widget {
+    min-height: 100%;
+    padding: clamp(22px, 2.5vw, 26px);
+  }
+
+  .content-grid {
+    grid-template-columns: minmax(0, 1.18fr) minmax(280px, 0.82fr);
+    align-items: stretch;
+  }
+
+  .forecast,
+  .forecast.is-scrollable {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding-bottom: 8px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .forecast .day {
+    flex: 0 0 clamp(132px, 24vw, 164px);
+    scroll-snap-align: start;
   }
 
   .types-grid {
@@ -1525,23 +1732,41 @@ body[data-weather="snow"] .sun-core {
   }
 }
 
-@media (max-width: 780px) {
+@media (max-width: 899px) {
+  .details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
   .app-shell {
-    padding: 18px;
+    width: min(100%, 100vw);
+    padding: clamp(14px, 4.2vw, 18px);
+  }
+
+  .app-header {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .brand {
+    justify-self: start;
   }
 
   .brand strong {
-    font-size: 1.1rem;
+    font-size: clamp(1.05rem, 4.6vw, 1.18rem);
   }
 
   .brand-mark {
-    width: 48px;
-    height: 48px;
+    width: clamp(46px, 13vw, 52px);
+    height: clamp(46px, 13vw, 52px);
   }
 
   .search-bar {
+    grid-row: auto;
     min-height: 58px;
-    padding-left: 16px;
+    padding: 7px 8px 7px 16px;
   }
 
   .search-leading {
@@ -1554,145 +1779,76 @@ body[data-weather="snow"] .sun-core {
   }
 
   .location-button {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
+    margin-right: 4px;
   }
 
-  .weather-overview,
-  .pokemon-partner,
-  .forecast-panel,
-  .details-panel,
-  .pokemon-guide,
-  .widget {
-    border-radius: 24px;
-  }
-
-  .weather-overview {
-    gap: 22px;
-    min-height: auto;
-    padding: 24px;
-  }
-
-  .weather-content {
-    max-width: none;
-    gap: 20px;
-  }
-
-  .weather-illustration {
-    position: relative;
-    inset: auto;
+  .header-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
     width: 100%;
-    height: 168px;
-    transform: none;
   }
 
-  .main-temp h1 {
-    font-size: 3.35rem;
+  .header-actions > .icon-button,
+  .header-actions .menu-wrap,
+  .header-actions .menu-wrap > button {
+    width: 100%;
   }
 
-  .location {
-    font-size: 1.7rem;
+  .icon-button,
+  .trainer-button {
+    min-width: 44px;
+    min-height: 44px;
+    height: 48px;
   }
 
-  .metric-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .trainer-button {
+    justify-content: center;
+    padding: 0 10px;
   }
 
-  .pokemon-partner {
-    grid-template-columns: 1fr;
+  .trainer-avatar {
+    width: 34px;
+    height: 34px;
   }
 
-  .partner-name {
-    font-size: 2.4rem;
+  .menu-wrap {
+    position: static;
   }
 
-  .partner-stats {
-    grid-template-columns: 1fr;
+  .dropdown-menu,
+  .trainer-menu {
+    top: calc(100% + 8px);
+    right: 0;
+    left: 0;
+    width: auto;
+    max-height: min(620px, calc(100vh - 190px));
   }
 
-  .side-widgets {
-    grid-template-columns: 1fr;
-  }
-
-  .air-widget {
-    min-height: auto;
-  }
-
-  .panel-heading,
-  .guide-heading,
   .feedback-card {
-    align-items: flex-start;
-    flex-direction: column;
+    display: grid;
+    gap: 16px;
   }
 
   .feedback-actions {
     justify-content: flex-start;
   }
 
-  .forecast {
-    display: flex;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    scroll-snap-type: x mandatory;
+  .secondary-button,
+  .save-city-button,
+  .menu-action,
+  .menu-location,
+  .remove-location,
+  #suggestions-list button {
+    min-height: 44px;
   }
 
-  .forecast .day {
-    min-width: 154px;
-    scroll-snap-align: start;
-  }
-
-  .types-grid {
+  .dashboard-grid,
+  .content-grid,
+  .side-widgets {
     grid-template-columns: 1fr;
-  }
-
-  .details-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .footer {
-    grid-template-columns: 1fr;
-    padding: 14px 18px 24px;
-  }
-
-  .footer-links {
-    justify-content: flex-start;
-  }
-}
-
-@media (max-width: 500px) {
-  .app-shell {
-    width: 100vw;
-    max-width: 100vw;
-    padding: 14px;
-  }
-
-  .app-header {
-    gap: 14px;
-  }
-
-  .header-actions {
-    flex-wrap: wrap;
-  }
-
-  .trainer-label {
-    display: none;
-  }
-
-  .trainer-button {
-    width: 52px;
-    padding: 0;
-    justify-content: center;
-  }
-
-  .search-bar {
-    width: min(354px, calc(100vw - 36px));
-    max-width: min(354px, calc(100vw - 36px));
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding: 7px 8px 7px 16px;
-  }
-
-  .location-button {
-    display: none;
   }
 
   .weather-overview,
@@ -1702,12 +1858,9 @@ body[data-weather="snow"] .sun-core {
   .pokemon-guide,
   .widget,
   .feedback-card {
-    width: min(354px, calc(100vw - 36px));
-    max-width: min(354px, calc(100vw - 36px));
-  }
-
-  .feedback-card > div {
-    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 24px;
   }
 
   .weather-overview,
@@ -1715,19 +1868,36 @@ body[data-weather="snow"] .sun-core {
   .forecast-panel,
   .details-panel,
   .pokemon-guide {
-    padding: 20px;
+    padding: clamp(18px, 5vw, 24px);
+  }
+
+  .weather-overview {
+    min-height: auto;
+  }
+
+  .weather-content {
+    gap: 20px;
+  }
+
+  .weather-illustration {
+    height: clamp(142px, 42vw, 176px);
   }
 
   .main-temp h1 {
-    font-size: 3rem;
+    font-size: clamp(2.8rem, 13vw, 3.55rem);
   }
 
-  .metric-grid {
+  .status {
+    font-size: clamp(1.08rem, 4.6vw, 1.28rem);
+  }
+
+  .location-row {
     gap: 10px;
   }
 
-  .metric-card {
-    padding: 13px;
+  .location {
+    font-size: clamp(1.42rem, 7vw, 1.72rem);
+    overflow-wrap: anywhere;
   }
 
   .location-actions {
@@ -1738,5 +1908,140 @@ body[data-weather="snow"] .sun-core {
   .save-city-button {
     width: 100%;
     justify-content: center;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .metric-card {
+    min-height: 88px;
+    padding: clamp(12px, 3.6vw, 15px);
+  }
+
+  .partner-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pokemon-stage {
+    min-height: clamp(178px, 52vw, 230px);
+  }
+
+  #pokemon-img {
+    width: min(72vw, 230px);
+    min-width: 138px;
+  }
+
+  .air-widget {
+    min-height: auto;
+  }
+
+  .panel-heading,
+  .guide-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .forecast {
+    margin-right: calc(-1 * clamp(18px, 5vw, 24px));
+    padding-right: clamp(18px, 5vw, 24px);
+  }
+
+  .forecast .day {
+    flex-basis: clamp(150px, 58vw, 184px);
+    min-height: 214px;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .types-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .type {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .footer {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 14px clamp(14px, 4.2vw, 18px) 24px;
+  }
+
+  .footer-links {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 430px) {
+  .trainer-label {
+    display: none;
+  }
+
+  .trainer-button {
+    padding: 0;
+  }
+
+  .search-bar {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .suggestions-panel {
+    border-radius: 20px;
+  }
+
+  .air-widget {
+    display: grid;
+  }
+
+  .air-score {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+@media (max-width: 374px) {
+  .app-shell {
+    padding: 12px;
+  }
+
+  .search-bar {
+    padding-left: 12px;
+  }
+
+  #city-input {
+    font-size: 0.9rem;
+  }
+
+  .location-button {
+    width: 44px;
+    margin-right: 2px;
+  }
+
+  #search-btn {
+    width: 46px;
+    height: 46px;
+  }
+
+  .weather-overview,
+  .pokemon-partner,
+  .forecast-panel,
+  .details-panel,
+  .pokemon-guide {
+    padding: 16px;
+  }
+
+  .metric-grid,
+  .partner-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .forecast {
+    margin-right: -16px;
+    padding-right: 16px;
   }
 }
